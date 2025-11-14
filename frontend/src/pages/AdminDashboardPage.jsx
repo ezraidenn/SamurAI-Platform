@@ -64,6 +64,7 @@ export default function AdminDashboardPage() {
   const [error, setError] = useState('');
   const [selectedReport, setSelectedReport] = useState(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [statusUpdate, setStatusUpdate] = useState({ status: '', comment: '' });
   const [updatingStatus, setUpdatingStatus] = useState(false);
 
@@ -117,6 +118,11 @@ export default function AdminDashboardPage() {
     setSelectedReport(report);
     setStatusUpdate({ status: report.status, comment: '' });
     setShowStatusModal(true);
+  };
+
+  const openDetailsModal = (report) => {
+    setSelectedReport(report);
+    setShowDetailsModal(true);
   };
 
   const formatDate = (dateString) => {
@@ -210,13 +216,14 @@ export default function AdminDashboardPage() {
               <h2 className="text-xl font-semibold text-gray-800 mb-4">
                 Mapa de Reportes ({reports.length})
               </h2>
-              <div className="h-96 rounded-lg overflow-hidden border-2 border-gray-300">
+              <div className="h-96 rounded-lg overflow-hidden border-2 border-gray-300 relative z-0">
                 {reports.length > 0 ? (
                   <MapContainer
                     center={mapCenter}
                     zoom={12}
-                    style={{ height: '100%', width: '100%' }}
+                    style={{ height: '100%', width: '100%', zIndex: 0 }}
                     scrollWheelZoom={true}
+                    zoomControl={true}
                   >
                     <TileLayer
                       attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -329,7 +336,6 @@ export default function AdminDashboardPage() {
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Usuario</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Categoría</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
@@ -342,7 +348,6 @@ export default function AdminDashboardPage() {
                     {reports.map((report) => (
                       <tr key={report.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 text-sm text-gray-900">#{report.id}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900">ID: {report.user_id}</td>
                         <td className="px-6 py-4 text-sm">
                           <span className="flex items-center">
                             <span className="text-xl mr-2">{categoryIcons[report.category]}</span>
@@ -366,12 +371,27 @@ export default function AdminDashboardPage() {
                           {formatDate(report.created_at)}
                         </td>
                         <td className="px-6 py-4">
-                          <button
-                            onClick={() => openStatusModal(report)}
-                            className="text-guinda hover:text-guinda-dark text-sm font-medium"
-                          >
-                            Cambiar Estado
-                          </button>
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => openDetailsModal(report)}
+                              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                              title="Ver detalles"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => openStatusModal(report)}
+                              className="text-guinda hover:text-guinda-dark text-sm font-medium"
+                              title="Cambiar estado"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -383,10 +403,221 @@ export default function AdminDashboardPage() {
         </motion.div>
       </div>
 
+      {/* Details Modal */}
+      <AnimatePresence>
+        {showDetailsModal && selectedReport && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[9999]" onClick={() => setShowDetailsModal(false)}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
+            >
+              <div className="p-6">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-6 pb-4 border-b">
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900">
+                      Reporte #{selectedReport.id}
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Creado el {formatDate(selectedReport.created_at)}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowDetailsModal(false)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Left Column - Report Info */}
+                  <div className="space-y-4">
+                    {/* Category */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Categoría</label>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-3xl">{categoryIcons[selectedReport.category]}</span>
+                        <span className="text-lg font-medium capitalize">{selectedReport.category}</span>
+                      </div>
+                    </div>
+
+                    {/* Status and Priority */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Estado</label>
+                        <span className={`inline-block px-4 py-2 rounded-full text-sm font-medium ${statusColors[selectedReport.status]}`}>
+                          {selectedReport.status.replace('_', ' ')}
+                        </span>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Prioridad</label>
+                        <span className={`inline-block px-4 py-2 rounded-full text-sm font-medium ${priorityColors[selectedReport.priority]}`}>
+                          Nivel {selectedReport.priority}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Description */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Descripción</label>
+                      <p className="text-gray-600 bg-gray-50 p-4 rounded-lg">
+                        {selectedReport.description}
+                      </p>
+                    </div>
+
+                    {/* Location */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Ubicación</label>
+                      <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                        <div className="flex items-center text-sm text-gray-600">
+                          <svg className="w-5 h-5 mr-2 text-guinda" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          <span>Lat: {selectedReport.latitude.toFixed(6)}</span>
+                        </div>
+                        <div className="flex items-center text-sm text-gray-600">
+                          <svg className="w-5 h-5 mr-2 text-guinda" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          <span>Lng: {selectedReport.longitude.toFixed(6)}</span>
+                        </div>
+                        <a
+                          href={`https://www.google.com/maps?q=${selectedReport.latitude},${selectedReport.longitude}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 font-medium mt-2"
+                        >
+                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                          </svg>
+                          Ver en Google Maps
+                        </a>
+                      </div>
+                    </div>
+
+                    {/* Timestamps */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Fechas</label>
+                      <div className="bg-gray-50 p-4 rounded-lg space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Creado:</span>
+                          <span className="font-medium">{formatDate(selectedReport.created_at)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Actualizado:</span>
+                          <span className="font-medium">{formatDate(selectedReport.updated_at)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Column - User Info & Photo */}
+                  <div className="space-y-4">
+                    {/* User Info */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Reportado por</label>
+                      <div className="bg-gradient-to-br from-guinda to-guinda-dark p-6 rounded-lg text-white">
+                        <div className="flex items-center space-x-4 mb-4">
+                          <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center">
+                            <svg className="w-10 h-10 text-guinda" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <div>
+                            <p className="text-lg font-semibold">{selectedReport.user?.name || 'Usuario'}</p>
+                            <p className="text-sm opacity-90">{selectedReport.user?.email || 'Sin email'}</p>
+                          </div>
+                        </div>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="opacity-90">ID Usuario:</span>
+                            <span className="font-medium">#{selectedReport.user_id}</span>
+                          </div>
+                          {selectedReport.user?.curp && (
+                            <div className="flex justify-between">
+                              <span className="opacity-90">CURP:</span>
+                              <span className="font-medium font-mono text-xs">{selectedReport.user.curp}</span>
+                            </div>
+                          )}
+                          <div className="flex justify-between">
+                            <span className="opacity-90">Rol:</span>
+                            <span className="font-medium capitalize">{selectedReport.user?.role || 'citizen'}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Photo */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Evidencia Fotográfica</label>
+                      {selectedReport.photo_url ? (
+                        <div className="relative group">
+                          <img
+                            src={getPhotoUrl(selectedReport.photo_url)}
+                            alt="Evidencia del reporte"
+                            className="w-full h-64 object-cover rounded-lg border-2 border-gray-200"
+                          />
+                          <a
+                            href={getPhotoUrl(selectedReport.photo_url)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all rounded-lg flex items-center justify-center"
+                          >
+                            <svg className="w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                            </svg>
+                          </a>
+                        </div>
+                      ) : (
+                        <div className="w-full h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+                          <div className="text-center text-gray-400">
+                            <svg className="w-16 h-16 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <p className="text-sm">Sin foto</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="mt-6 pt-6 border-t flex justify-end space-x-3">
+                  <button
+                    onClick={() => setShowDetailsModal(false)}
+                    className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                  >
+                    Cerrar
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowDetailsModal(false);
+                      openStatusModal(selectedReport);
+                    }}
+                    className="px-6 py-2 bg-guinda text-white rounded-lg hover:bg-guinda-dark transition-colors font-medium"
+                  >
+                    Cambiar Estado
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Status Update Modal */}
       <AnimatePresence>
         {showStatusModal && selectedReport && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[9999]">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
