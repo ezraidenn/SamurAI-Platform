@@ -47,6 +47,11 @@ class StatusUpdate(BaseModel):
     comment: Optional[str] = Field(None, max_length=500)
 
 
+class RoleUpdate(BaseModel):
+    """Schema for updating user role."""
+    role: str = Field(..., pattern="^(citizen|admin)$")
+
+
 @router.get("/reports/summary")
 async def get_admin_summary(
     db: Session = Depends(get_db),
@@ -162,3 +167,88 @@ async def update_report_status(
     db.refresh(report)
     
     return report
+
+
+@router.patch("/users/{user_id}/role")
+async def update_user_role(
+    user_id: int,
+    role_update: RoleUpdate,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(require_admin)
+):
+    """
+    Update the role of a user.
+    
+    Only admins can update user roles.
+    
+    Args:
+        user_id: User ID to update
+        role_update: New role (citizen or admin)
+        db: Database session
+        admin_user: Authenticated admin user
+        
+    Returns:
+        Updated user information
+        
+    Raises:
+        404: If user not found
+        400: If trying to change own role
+    """
+    # Get user
+    user = db.query(User).filter(User.id == user_id).first()
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Prevent admin from changing their own role
+    if user.id == admin_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot change your own role"
+        )
+    
+    # Update role
+    user.role = role_update.role
+    
+    db.commit()
+    db.refresh(user)
+    
+    return {
+        "id": user.id,
+        "name": user.name,
+        "email": user.email,
+        "role": user.role,
+        "message": f"User role updated to {role_update.role}"
+    }
+
+
+@router.get("/users")
+async def list_all_users(
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(require_admin)
+):
+    """
+    List all users in the system.
+    
+    Only admins can view all users.
+    
+    Args:
+        db: Database session
+        admin_user: Authenticated admin user
+        
+    Returns:
+        List of all users
+    """
+    users = db.query(User).all()
+    
+    return [{
+        "id": user.id,
+        "name": user.name,
+        "email": user.email,
+        "curp": user.curp,
+        "role": user.role,
+        "created_at": user.created_at
+    } for user in users]

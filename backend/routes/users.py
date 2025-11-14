@@ -109,13 +109,27 @@ async def login(login_data: UserLogin, db: Session = Depends(get_db)):
     # Find user by email
     user = db.query(User).filter(User.email == login_data.email).first()
     
+    # DEBUG: Log login attempt
+    print(f"\n🔐 Login attempt:")
+    print(f"   Email: {login_data.email}")
+    print(f"   User found: {user is not None}")
+    if user:
+        print(f"   User ID: {user.id}")
+        print(f"   User role: {user.role}")
+        print(f"   Hash (first 30): {user.hashed_password[:30]}")
+        password_valid = verify_password(login_data.password, user.hashed_password)
+        print(f"   Password valid: {password_valid}")
+    
     # Verify user exists and password is correct
     if not user or not verify_password(login_data.password, user.hashed_password):
+        print(f"   ❌ Login FAILED\n")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+    
+    print(f"   ✅ Login SUCCESS\n")
     
     # Create access token
     access_token = create_access_token(

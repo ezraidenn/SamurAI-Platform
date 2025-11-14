@@ -35,11 +35,14 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // Solo limpiar auth y redirigir si es un 401 en una ruta protegida
+    // NO en el login mismo
+    if (error.response?.status === 401 && error.config.url !== '/auth/login') {
       // Token expired or invalid - clear auth data
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      // Usar navigate en lugar de window.location para evitar refresh
+      // El componente que reciba el error manejará el redirect
     }
     return Promise.reject(error);
   }
@@ -161,6 +164,26 @@ export const getAdminSummary = async () => {
  */
 export const updateReportStatus = async (reportId, statusData) => {
   const response = await api.patch(`/admin/reports/${reportId}/status`, statusData);
+  return response.data;
+};
+
+/**
+ * Get all users (admin only)
+ * @returns {Promise} List of all users
+ */
+export const getAllUsers = async () => {
+  const response = await api.get('/admin/users');
+  return response.data;
+};
+
+/**
+ * Update user role (admin only)
+ * @param {number} userId - User ID
+ * @param {string} role - New role (citizen or admin)
+ * @returns {Promise} Updated user
+ */
+export const updateUserRole = async (userId, role) => {
+  const response = await api.patch(`/admin/users/${userId}/role`, { role });
   return response.data;
 };
 

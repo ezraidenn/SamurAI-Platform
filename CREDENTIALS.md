@@ -1,8 +1,15 @@
 # 🔐 Credenciales de Acceso - UCU Reporta
 
-## 👨‍💼 Usuario Administrador (Gobierno/Municipio)
+## 👨‍💼 Usuarios Administradores (Gobierno/Municipio)
 
-### Credenciales de Login
+### Admin 1 - UPY
+```
+Email:    2309045@upy.edu.mx
+Password: admin123
+CURP:     AUPY850101HYNXXX01
+```
+
+### Admin 2 - UCU
 ```
 Email:    admin@ucu.gob.mx
 Password: admin123
@@ -48,6 +55,13 @@ CURP:     GOGM900515MYNXNR03
 - ✅ Ver detalles de sus reportes
 
 ---
+
+## ✅ Usuarios Admin Ya Creados
+
+Los siguientes usuarios admin ya están creados en la base de datos:
+- ✅ 2309045@upy.edu.mx (password: admin123)
+- ✅ admin@ucu.gob.mx (password: admin123)
+- ✅ maria@example.com (ciudadano, password: password123)
 
 ## 🆕 Crear Nuevo Usuario Admin
 
