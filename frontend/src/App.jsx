@@ -1,0 +1,70 @@
+/**
+ * Main App Component
+ * 
+ * Sets up routing with authentication and role-based access control.
+ */
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import MainLayout from './layouts/MainLayout';
+import ProtectedRoute from './components/ProtectedRoute';
+import LandingPage from './pages/LandingPage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import ReportFormPage from './pages/ReportFormPage';
+import CitizenDashboardPage from './pages/CitizenDashboardPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
+
+function App() {
+  return (
+    <Router>
+      <AuthProvider>
+        <Routes>
+          {/* Public routes without layout */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+
+          {/* Citizen routes - require authentication */}
+          <Route
+            path="/reportar"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <ReportFormPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/panel"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <CitizenDashboardPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Admin routes - require authentication and admin role */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute requireAdmin={true}>
+                <MainLayout>
+                  <AdminDashboardPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Catch all - redirect to login */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </AuthProvider>
+    </Router>
+  );
+}
+
+export default App;

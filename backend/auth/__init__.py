@@ -1,0 +1,8 @@
+"""
+Authentication module for UCU Reporta.
+
+This package contains JWT token handling and authentication utilities.
+"""
+from backend.auth.jwt_handler import create_access_token, verify_token, get_current_user
+
+__all__ = ["create_access_token", "verify_token", "get_current_user"]
