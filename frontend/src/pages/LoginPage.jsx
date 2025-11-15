@@ -126,11 +126,11 @@ export default function LoginPage() {
               transition={{ delay: 0.2, type: 'spring' }}
               className="inline-block mb-4"
             >
-              <div className="w-16 h-16 bg-guinda rounded-2xl flex items-center justify-center mx-auto">
-                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
+              <img 
+                src="/images/logo-ucu.png" 
+                alt="Logo UCU" 
+                className="h-24 w-auto mx-auto"
+              />
             </motion.div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Bienvenido</h1>
             <p className="text-gray-600">Inicia sesión en UCU Reporta</p>
@@ -304,9 +304,18 @@ export default function LoginPage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
-        className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-guinda via-guinda-dark to-guinda relative overflow-hidden"
+        className="hidden lg:flex lg:flex-1 relative overflow-hidden"
       >
-        <div className="absolute inset-0 bg-black/10"></div>
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="/images/login-bg.png" 
+            alt="Ucú, Yucatán" 
+            className="w-full h-full object-cover"
+          />
+          {/* Guinda overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-guinda/85 via-guinda-dark/80 to-guinda/90"></div>
+        </div>
         <div className="relative z-10 flex flex-col justify-center items-center text-white p-12">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}

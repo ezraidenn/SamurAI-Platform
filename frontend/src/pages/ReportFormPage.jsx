@@ -13,12 +13,9 @@ import { createReport, uploadReportPhoto, validatePhotoWithAI } from '../service
 import { useAuth } from '../context/AuthContext';
 import { useBanStatus } from '../hooks/useBanStatus';
 import { 
-  COLONIAS_UCU, 
   CODIGOS_POSTALES_UCU, 
   validarCodigoPostalUcu, 
-  validarColoniaUcu,
-  getMensajeErrorCP,
-  getMensajeErrorColonia 
+  getMensajeErrorCP
 } from '../config/ucuData';
 
 // Categorías de daño vial simplificadas
@@ -637,7 +634,7 @@ export default function ReportFormPage() {
           </div>
 
           <form onSubmit={handleSubmit} className={`bg-white rounded-2xl shadow-lg p-6 md:p-10 space-y-6 md:space-y-8 ${banStatus.isBanned ? 'opacity-50 pointer-events-none' : ''}`}>
-            {/* Colonia - Dropdown */}
+            {/* Colonia - Campo de texto libre */}
             <div>
               <label className="block text-base font-semibold text-gray-800 mb-2">
                 <span className="flex items-center gap-2">
@@ -648,28 +645,16 @@ export default function ReportFormPage() {
                   Colonia *
                 </span>
               </label>
-              <select
+              <input
+                type="text"
                 name="colonia"
                 value={formData.colonia}
                 onChange={handleChange}
-                className={`w-full px-4 py-3 text-base border-2 rounded-lg focus:ring-2 focus:ring-guinda focus:border-guinda transition-all appearance-none bg-white cursor-pointer ${
+                placeholder="Ej: Centro, Cholul, San José Tzal..."
+                className={`w-full px-4 py-3 text-base border-2 rounded-lg focus:ring-2 focus:ring-guinda focus:border-guinda transition-all ${
                   errors.colonia ? 'border-red-300 bg-red-50' : 'border-gray-300'
                 }`}
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                  backgroundPosition: 'right 0.5rem center',
-                  backgroundRepeat: 'no-repeat',
-                  backgroundSize: '1.5em 1.5em',
-                  paddingRight: '2.5rem'
-                }}
-              >
-                <option value="">Selecciona tu colonia</option>
-                {COLONIAS_UCU.map(colonia => (
-                  <option key={colonia} value={colonia}>
-                    {colonia}
-                  </option>
-                ))}
-              </select>
+              />
               {errors.colonia && (
                 <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
                   <span>⚠️</span> {errors.colonia}
