@@ -65,6 +65,53 @@ export function AuthProvider({ children }) {
     return () => clearInterval(interval);
   }, [user, token]);
 
+  // Detectar cuando se borra el token de localStorage (incluso desde DevTools)
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      // Si se borró el token o el user
+      if (e.key === 'token' || e.key === 'user') {
+        const tokenExists = localStorage.getItem('token');
+        const userExists = localStorage.getItem('user');
+        
+        // Si alguno fue borrado y estábamos autenticados
+        if ((!tokenExists || !userExists) && (user || token)) {
+          console.log('🚨 Token borrado, cerrando sesión...');
+          logout();
+          // Redirigir a login si no estamos en rutas públicas
+          const publicRoutes = ['/', '/login', '/register', '/inicio'];
+          if (!publicRoutes.includes(window.location.pathname)) {
+            window.location.href = '/login';
+          }
+        }
+      }
+    };
+
+    // Listener para cambios en localStorage
+    window.addEventListener('storage', handleStorageChange);
+
+    // Verificar periódicamente si el token sigue existiendo (cada 2 segundos)
+    const checkInterval = setInterval(() => {
+      if (user || token) {
+        const tokenExists = localStorage.getItem('token');
+        const userExists = localStorage.getItem('user');
+        
+        if (!tokenExists || !userExists) {
+          console.log('🚨 Token no encontrado, cerrando sesión...');
+          logout();
+          const publicRoutes = ['/', '/login', '/register', '/inicio'];
+          if (!publicRoutes.includes(window.location.pathname)) {
+            window.location.href = '/login';
+          }
+        }
+      }
+    }, 2000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(checkInterval);
+    };
+  }, [user, token]);
+
   /**
    * Log in a user
    * @param {Object} userData - User data from login response
