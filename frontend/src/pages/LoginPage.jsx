@@ -316,18 +316,18 @@ export default function LoginPage() {
           {/* Guinda overlay */}
           <div className="absolute inset-0 bg-gradient-to-br from-guinda/85 via-guinda-dark/80 to-guinda/90"></div>
         </div>
-        <div className="relative z-10 flex flex-col justify-center items-center text-white p-12">
+        <div className="relative z-10 flex flex-col justify-center items-center text-white p-12 w-full">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.5 }}
-            className="text-center"
+            className="text-center w-full max-w-2xl"
           >
             <h2 className="text-5xl font-bold mb-6">UCU Reporta</h2>
-            <p className="text-xl text-white/90 mb-8 max-w-md">
+            <p className="text-xl text-white/90 mb-8 mx-auto max-w-md">
               Plataforma digital para reportar problemas urbanos y mejorar tu municipio
             </p>
-            <div className="grid grid-cols-2 gap-6 max-w-lg">
+            <div className="grid grid-cols-2 gap-6 max-w-xl mx-auto">
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
                 <svg className="w-10 h-10 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />

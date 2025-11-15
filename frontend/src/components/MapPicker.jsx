@@ -86,23 +86,23 @@ function LocationMarker({ position, setPosition, onDragEnd, isWithinUcu, onOutOf
 }
 
 export default function MapPicker({ value, onChange, onLocationFound, height = 'h-96' }) {
-  // Default center: Ucú, Yucatán
-  const defaultCenter = { lat: 21.0833, lng: -89.7167 };
+  // Default center: Ucú, Yucatán (coordenadas del centro del municipio)
+  const defaultCenter = { lat: 21.0317, lng: -89.7464 };
   
   // Límites geográficos aproximados de Ucú (bounding box)
   const ucuBounds = {
-    north: 21.15,  // Límite norte
-    south: 21.02,  // Límite sur
-    east: -89.65,  // Límite este
-    west: -89.78   // Límite oeste
+    north: 21.06,   // Límite norte
+    south: 21.00,   // Límite sur
+    east: -89.72,   // Límite este
+    west: -89.78    // Límite oeste
   };
   
   // Polígono aproximado del municipio de Ucú para visualización
   const ucuPolygon = [
-    [21.12, -89.78],  // Noroeste
-    [21.12, -89.68],  // Noreste
-    [21.05, -89.68],  // Sureste
-    [21.05, -89.78],  // Suroeste
+    [21.06, -89.78],  // Noroeste
+    [21.06, -89.72],  // Noreste
+    [21.00, -89.72],  // Sureste
+    [21.00, -89.78],  // Suroeste
   ];
   
   const [position, setPosition] = useState(value || null);
