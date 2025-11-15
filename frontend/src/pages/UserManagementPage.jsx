@@ -98,12 +98,21 @@ export default function UserManagementPage() {
   };
 
   const canManageUser = (targetUser) => {
+    // Can't manage yourself
     if (targetUser.id === currentUser.id) return false;
+    // Admin can manage everyone (including other admins)
+    if (currentUser.role === 'admin') return true;
+    // Others can only manage users with lower roles
     return getRoleLevel() > ROLE_LEVELS[targetUser.role];
   };
 
   const getAvailableRoles = () => {
     const currentLevel = getRoleLevel();
+    // Admin can assign ALL roles (including admin)
+    // Others can only assign roles lower than their own
+    if (currentUser.role === 'admin') {
+      return Object.keys(ROLE_LEVELS);
+    }
     return Object.entries(ROLE_LEVELS)
       .filter(([_, level]) => level < currentLevel)
       .map(([role]) => role);
