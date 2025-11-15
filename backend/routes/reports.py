@@ -8,6 +8,7 @@ import uuid
 import json
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Query
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from backend.database import get_db
 from backend.models.user import User
@@ -73,22 +74,24 @@ async def validate_photo_with_ai(
             
             print(f"⚠️  Strike issued for offensive text to user {current_user.id}: {strike_info}")
             
-            # Return rejection
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail={
-                    "error": "offensive_text",
-                    "message": "Texto rechazado por contenido ofensivo",
-                    "rejection_reason": text_check.get("rejection_reason"),
-                    "professional_feedback": text_check.get("professional_feedback"),
-                    "detected_words": text_check.get("detected_words", []),
-                    "offense_type": text_check.get("offense_type"),
-                    "strike_issued": True,
-                    "strike_count": strike_info["strike_count"],
-                    "is_banned": strike_info["is_banned"],
-                    "ban_until": strike_info["ban_until"].isoformat() if strike_info["ban_until"] else None,
-                    "ban_reason": strike_info["ban_reason"],
-                    "is_permanent_ban": strike_info["is_permanent"]
+            # Return rejection with JSONResponse
+            return JSONResponse(
+                status_code=422,
+                content={
+                    "detail": {
+                        "error": "offensive_text",
+                        "message": "Texto rechazado por contenido ofensivo",
+                        "rejection_reason": text_check.get("rejection_reason"),
+                        "professional_feedback": text_check.get("professional_feedback"),
+                        "detected_words": text_check.get("detected_words", []),
+                        "offense_type": text_check.get("offense_type"),
+                        "strike_issued": True,
+                        "strike_count": strike_info["strike_count"],
+                        "is_banned": strike_info["is_banned"],
+                        "ban_until": strike_info["ban_until"].isoformat() if strike_info["ban_until"] else None,
+                        "ban_reason": strike_info["ban_reason"],
+                        "is_permanent_ban": strike_info["is_permanent"]
+                    }
                 }
             )
         
@@ -190,9 +193,9 @@ async def validate_photo_with_ai(
                 detail["ban_reason"] = strike_info["ban_reason"]
                 detail["is_permanent_ban"] = strike_info["is_permanent"]
             
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=detail
+            return JSONResponse(
+                status_code=422,
+                content={"detail": detail}
             )
         
         # Photo is valid - keep temp file and return path
