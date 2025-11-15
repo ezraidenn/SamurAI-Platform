@@ -1,10 +1,11 @@
-# 📊 DICCIONARIO DE DATOS - UCU Reporta & Negocios
+# 📊 DICCIONARIO DE DATOS - Ucú Reporta & Negocios
 
-**Sistema:** UCU Reporta & Negocios  
+**Sistema:** Ucú Reporta & Negocios  
 **Versión:** 2.0.0  
 **Base de Datos:** PostgreSQL (Neon)  
 **Fecha:** Noviembre 2025  
-**Producción:** https://samurai-frontend.vercel.app
+**Producción:** https://samurai-frontend.vercel.app  
+**Municipio:** Ucú, Yucatán, México
 
 ---
 
@@ -63,11 +64,10 @@ Almacena reportes de incidentes cívicos.
 **Valores Permitidos:**
 
 **category:**
-- `bache` - Baches en calles
-- `alumbrado` - Alumbrado público
-- `basura` - Acumulación de basura
-- `drenaje` - Problemas de drenaje
-- `vialidad` - Problemas viales
+- `via_mal_estado` - Vías en mal estado (baches, grietas, hundimientos)
+- `infraestructura_danada` - Infraestructura dañada (banquetas, drenaje, alcantarillas)
+- `senalizacion_transito` - Señalización y control de tránsito
+- `iluminacion_visibilidad` - Iluminación y visibilidad
 
 **status:**
 - `pendiente` - Sin atender
@@ -221,10 +221,12 @@ Crea nuevo reporte (requiere auth).
 }
 ```
 
-**Cálculo de Prioridad:**
-- Base por categoría: bache=3, alumbrado=2, basura=1, drenaje=4, vialidad=2
-- +1 si descripción contiene: "accidente", "niños", "riesgo", "peligro", "urgente", "emergencia"
-- Máximo: 5
+**Validaciones Especiales:**
+- **Geolocalización**: Limitada al municipio de Ucú (polígono delimitador)
+- **Colonia**: Campo de texto libre (sin validación de lista)
+- **Código Postal**: 97357, 97350, 97358, 97359
+- **Validación IA**: GPT-4o-mini Vision valida imágenes
+- **Sistema de Strikes**: Contenido ofensivo o inválido genera strikes (máx 5)
 
 ---
 
@@ -573,6 +575,6 @@ backend/static/uploads/
 
 ---
 
-**Documento generado:** 14 Nov 2024  
-**Versión:** 1.1  
-**Última actualización:** Correcciones sobre creación de BD y scripts
+**Documento generado:** 15 Nov 2025  
+**Versión:** 2.0.0  
+**Última actualización:** Sistema completo en producción con validación IA y geofencing

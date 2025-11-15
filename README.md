@@ -1,9 +1,9 @@
-# UCU Reporta & Negocios 🏛️🏪
+# Ucú Reporta & Negocios 🏛️🏪
 
 **Plataforma Integral de Reportes Ciudadanos y Directorio de Negocios Locales**
 
-UCU Reporta es una plataforma moderna que combina dos sistemas esenciales para municipios:
-1. **Sistema de Reportes Ciudadanos**: Reporta y da seguimiento a problemas municipales (baches, alumbrado, basura, drenaje, vialidad)
+Ucú Reporta es una plataforma moderna que combina dos sistemas esenciales para el municipio de Ucú, Yucatán:
+1. **Sistema de Reportes Ciudadanos**: Reporta y da seguimiento a problemas de infraestructura vial
 2. **Directorio de Negocios Locales**: Mapa interactivo con negocios verificados y POIs oficiales (escuelas, hospitales, gobierno)
 
 ---
@@ -20,7 +20,8 @@ UCU Reporta es una plataforma moderna que combina dos sistemas esenciales para m
 - No requiere instalación, funciona desde cualquier navegador
 
 **👨‍💼 Para Administradores:**
-- Accede directamente al panel admin con tus credenciales
+- Accede directamente al panel admin: https://samurai-frontend.vercel.app/admin
+- Credenciales de prueba disponibles en el equipo de desarrollo
 - Gestiona reportes, usuarios, negocios y anuncios desde un solo lugar
 
 ## 🌟 Overview
@@ -28,17 +29,19 @@ UCU Reporta es una plataforma moderna que combina dos sistemas esenciales para m
 Plataforma completa con dos módulos principales:
 
 ### 📋 Sistema de Reportes
-- Reportes ciudadanos de problemas urbanos
+- Reportes de daños en infraestructura vial (baches, banquetas, señalización, iluminación)
+- Geolocalización precisa con mapa delimitado al municipio de Ucú
+- Validación automática de imágenes con IA (GPT-4o-mini Vision)
+- Sistema de strikes para contenido ofensivo o inválido
 - Dashboard para operadores municipales
-- Validación automática con IA
-- Sistema de priorización inteligente
 
 ### 🏪 Sistema de Negocios (POIs)
-- Directorio de negocios locales
-- Mapa interactivo con marcadores personalizados
+- Directorio de negocios locales de Ucú
+- Mapa interactivo centrado en el municipio
 - POIs oficiales pre-cargados (escuelas, hospitales, gobierno)
-- Validación automática con IA (GPT-4 Vision)
+- Validación automática de imágenes con IA
 - Sistema de categorías inteligente
+- Registro público de negocios con validación administrativa
 
 **Stack Tecnológico:**
 - **Backend**: FastAPI + SQLAlchemy + PostgreSQL (Neon)
