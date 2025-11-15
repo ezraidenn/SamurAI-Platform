@@ -52,11 +52,11 @@ export default function LoginPage() {
     }
 
     setLoading(true);
-    console.log('🔐 Iniciando login...');
+    console.log('Iniciando login...');
 
     try {
       const response = await loginUser({ email, password });
-      console.log('✅ Login exitoso:', response);
+      console.log('Login exitoso:', response);
 
       // Guardar auth
       login(response.user, response.access_token);
@@ -75,7 +75,7 @@ export default function LoginPage() {
       console.log('➡️ Redirigiendo a:', destination, '(Role:', response.user.role, ')');
       navigate(destination, { replace: true });
     } catch (err) {
-      console.error('❌ Error de login:', err);
+      console.error('Error de login:', err);
       
       if (err.response?.status === 401) {
         setError('Email o contraseña incorrectos');
@@ -324,7 +324,9 @@ export default function LoginPage() {
                 <p className="text-sm">Geolocalización precisa</p>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
-                <div className="text-4xl mb-2">📊</div>
+                <svg className="w-10 h-10 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
                 <p className="text-sm">Seguimiento en tiempo real</p>
               </div>
               <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">

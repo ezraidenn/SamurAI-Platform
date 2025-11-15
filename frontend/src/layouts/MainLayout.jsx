@@ -80,8 +80,22 @@ export default function MainLayout({ children }) {
                             </button>
                             {showBanTooltip && (
                               <div className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 w-64 bg-gray-900 text-white text-sm rounded-lg p-3 shadow-xl z-50">
-                                <div className="font-bold mb-1">
-                                  {banStatus.isPermanent ? '🔒 Cuenta Suspendida Permanentemente' : '⏰ Cuenta Suspendida'}
+                                <div className="font-bold mb-1 flex items-center gap-2">
+                                  {banStatus.isPermanent ? (
+                                    <>
+                                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                                      </svg>
+                                      <span>Cuenta Suspendida Permanentemente</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                      </svg>
+                                      <span>Cuenta Suspendida</span>
+                                    </>
+                                  )}
                                 </div>
                                 <div className="text-xs text-gray-300">
                                   {banStatus.isPermanent 
@@ -200,7 +214,10 @@ export default function MainLayout({ children }) {
                           : 'hover:bg-guinda-light'
                       }`}
                     >
-                      👤 {user.name}
+                      <svg className="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      {user.name}
                     </Link>
                     <button
                       onClick={handleLogout}
@@ -276,7 +293,10 @@ export default function MainLayout({ children }) {
                       onClick={() => setMobileMenuOpen(false)}
                       className="block px-3 py-2 rounded-lg hover:bg-guinda-light transition-colors border-b border-guinda-light mb-2"
                     >
-                      👤 Mi Perfil - {user.name}
+                      <svg className="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      Mi Perfil - {user.name}
                     </Link>
                     
                     {user.role === 'citizen' && (
