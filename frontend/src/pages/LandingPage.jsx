@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom';
 export default function LandingPage() {
   const features = [
     {
-      icon: '📱',
+      icon: <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>,
       title: 'Reporta Fácilmente',
       description: 'Envía reportes de problemas urbanos en segundos desde tu dispositivo móvil o computadora.',
     },
@@ -24,7 +24,7 @@ export default function LandingPage() {
       description: 'Agrega fotos para documentar mejor el problema y facilitar su resolución.',
     },
     {
-      icon: '📊',
+      icon: <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>,
       title: 'Seguimiento en Tiempo Real',
       description: 'Consulta el estado de tus reportes: pendiente, en proceso o resuelto.',
     },
@@ -41,11 +41,31 @@ export default function LandingPage() {
   ];
 
   const categories = [
-    { emoji: '🕳️', name: 'Baches', color: 'bg-orange-100' },
-    { emoji: '💡', name: 'Alumbrado', color: 'bg-yellow-100' },
-    { emoji: '🗑️', name: 'Basura', color: 'bg-green-100' },
-    { emoji: '🚰', name: 'Drenaje', color: 'bg-blue-100' },
-    { emoji: '🚦', name: 'Vialidad', color: 'bg-purple-100' },
+    { 
+      icon: <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>, 
+      name: 'Baches', 
+      color: 'bg-orange-100' 
+    },
+    { 
+      icon: <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>, 
+      name: 'Alumbrado', 
+      color: 'bg-yellow-100' 
+    },
+    { 
+      icon: <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>, 
+      name: 'Basura', 
+      color: 'bg-green-100' 
+    },
+    { 
+      icon: <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" /></svg>, 
+      name: 'Drenaje', 
+      color: 'bg-blue-100' 
+    },
+    { 
+      icon: <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>, 
+      name: 'Vialidad', 
+      color: 'bg-purple-100' 
+    },
   ];
 
   const stats = [
@@ -197,7 +217,7 @@ export default function LandingPage() {
                 transition={{ duration: 0.3, delay: index * 0.1 }}
                 className={`${category.color} px-6 py-4 rounded-full flex items-center space-x-3 shadow-md hover:shadow-lg transition-shadow`}
               >
-                <span className="text-3xl">{category.emoji}</span>
+                <div className="text-gray-700">{category.icon}</div>
                 <span className="font-semibold text-gray-800">{category.name}</span>
               </motion.div>
             ))}
@@ -220,19 +240,19 @@ export default function LandingPage() {
                 step: '1',
                 title: 'Regístrate',
                 description: 'Crea tu cuenta con tu CURP en menos de 1 minuto.',
-                icon: '👤',
+                icon: <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>,
               },
               {
                 step: '2',
                 title: 'Reporta',
                 description: 'Selecciona la categoría, describe el problema y marca la ubicación en el mapa.',
-                icon: '📝',
+                icon: <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>,
               },
               {
                 step: '3',
                 title: 'Da Seguimiento',
                 description: 'Consulta el estado de tu reporte y recibe actualizaciones cuando sea resuelto.',
-                icon: '✅',
+                icon: <svg className="w-12 h-12" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>,
               },
             ].map((item, index) => (
               <motion.div

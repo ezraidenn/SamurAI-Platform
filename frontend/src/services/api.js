@@ -44,8 +44,10 @@ api.interceptors.response.use(
       // Token expired or invalid - clear auth data
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      // Usar navigate en lugar de window.location para evitar refresh
-      // El componente que reciba el error manejará el redirect
+      localStorage.removeItem('tokenExpiry');
+      
+      // Redirigir a la landing page
+      window.location.href = '/';
     }
     return Promise.reject(error);
   }
@@ -169,6 +171,63 @@ export const getReports = async (filters = {}) => {
 export const getPublicApprovedReports = async (limit = 5) => {
   const response = await api.get('/reports/public/approved', { params: { limit } });
   return response.data;
+};
+
+// ==================== ANNOUNCEMENTS APIs ====================
+
+/**
+ * Get public announcements (no authentication required)
+ * @param {number} limit - Maximum number of announcements to return
+ * @returns {Promise} Array of active announcements
+ */
+export const getPublicAnnouncements = async (limit = 10) => {
+  const response = await api.get('/announcements/public', { params: { limit } });
+  return response.data;
+};
+
+/**
+ * Get all announcements (supervisor/admin only)
+ * @param {boolean} includeInactive - Include inactive announcements
+ * @returns {Promise} Array of announcements
+ */
+export const getAllAnnouncements = async (includeInactive = false) => {
+  const response = await api.get('/announcements/', { params: { include_inactive: includeInactive } });
+  return response.data;
+};
+
+/**
+ * Create a new announcement (supervisor/admin only)
+ * @param {FormData} formData - Announcement data with optional image file
+ * @returns {Promise} Created announcement
+ */
+export const createAnnouncement = async (formData) => {
+  // No establecer Content-Type manualmente - el navegador lo hace automáticamente con el boundary correcto
+  const response = await api.post('/announcements/', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+};
+
+/**
+ * Update an announcement (supervisor/admin only)
+ * @param {number} announcementId - Announcement ID
+ * @param {Object} updateData - Fields to update
+ * @returns {Promise} Updated announcement
+ */
+export const updateAnnouncement = async (announcementId, updateData) => {
+  const response = await api.patch(`/announcements/${announcementId}`, updateData);
+  return response.data;
+};
+
+/**
+ * Delete an announcement (supervisor/admin only)
+ * @param {number} announcementId - Announcement ID
+ * @returns {Promise} void
+ */
+export const deleteAnnouncement = async (announcementId) => {
+  await api.delete(`/announcements/${announcementId}`);
 };
 
 /**

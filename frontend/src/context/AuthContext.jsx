@@ -18,20 +18,52 @@ export function AuthProvider({ children }) {
     try {
       const storedToken = localStorage.getItem('token');
       const storedUser = localStorage.getItem('user');
+      const tokenExpiry = localStorage.getItem('tokenExpiry');
 
       if (storedToken && storedUser) {
-        setToken(storedToken);
-        setUser(JSON.parse(storedUser));
+        // Verificar si el token ha expirado
+        if (tokenExpiry && new Date().getTime() > parseInt(tokenExpiry)) {
+          // Token expirado - limpiar datos
+          console.log('⏰ Token expirado, cerrando sesión...');
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          localStorage.removeItem('tokenExpiry');
+        } else {
+          setToken(storedToken);
+          setUser(JSON.parse(storedUser));
+        }
       }
     } catch (error) {
       console.error('Error loading auth data:', error);
       // Clear invalid data
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      localStorage.removeItem('tokenExpiry');
     } finally {
       setLoading(false);
     }
   }, []);
+
+  // Verificar expiración del token periódicamente (cada minuto)
+  useEffect(() => {
+    if (!user || !token) return;
+
+    const checkTokenExpiry = () => {
+      const tokenExpiry = localStorage.getItem('tokenExpiry');
+      if (tokenExpiry && new Date().getTime() > parseInt(tokenExpiry)) {
+        console.log('⏰ Token expirado, cerrando sesión automáticamente...');
+        logout();
+        // Redirigir a la landing page
+        window.location.href = '/';
+      }
+    };
+
+    // Verificar cada minuto
+    const interval = setInterval(checkTokenExpiry, 60000);
+
+    // Limpiar intervalo al desmontar
+    return () => clearInterval(interval);
+  }, [user, token]);
 
   /**
    * Log in a user
@@ -41,8 +73,15 @@ export function AuthProvider({ children }) {
   const login = (userData, authToken) => {
     setUser(userData);
     setToken(authToken);
+    
+    // Calcular tiempo de expiración (30 minutos desde ahora)
+    const expiryTime = new Date().getTime() + (30 * 60 * 1000); // 30 minutos en milisegundos
+    
     localStorage.setItem('token', authToken);
     localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('tokenExpiry', expiryTime.toString());
+    
+    console.log('✅ Sesión iniciada. Expira en 30 minutos.');
   };
 
   /**
@@ -53,6 +92,8 @@ export function AuthProvider({ children }) {
     setToken(null);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('tokenExpiry');
+    console.log('🚪 Sesión cerrada.');
   };
 
   /**

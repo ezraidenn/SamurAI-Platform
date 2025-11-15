@@ -45,3 +45,4 @@ class User(Base):
     reports = relationship("Report", foreign_keys="Report.user_id", back_populates="user")
     strikes = relationship("Strike", back_populates="user", cascade="all, delete-orphan")
     points_of_interest = relationship("PointOfInterest", foreign_keys="PointOfInterest.user_id", back_populates="user")
+    announcements = relationship("Announcement", back_populates="creator")

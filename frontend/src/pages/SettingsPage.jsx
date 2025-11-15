@@ -69,7 +69,7 @@ export default function SettingsPage() {
       // TODO: Save to backend when endpoint is ready
       // await updateUserSettings(settings);
 
-      setMessage({ type: 'success', text: '✅ Configuración guardada exitosamente' });
+      setMessage({ type: 'success', text: 'Configuración guardada exitosamente' });
       setHasChanges(false);
     } catch (error) {
       setMessage({ 
@@ -88,7 +88,7 @@ export default function SettingsPage() {
 
   const handleDeleteAccount = () => {
     const confirmed = confirm(
-      '⚠️ ¿Estás seguro de que deseas eliminar tu cuenta?\n\n' +
+      '¿Estás seguro de que deseas eliminar tu cuenta?\n\n' +
       'Esta acción es PERMANENTE y no se puede deshacer.\n' +
       'Se eliminarán todos tus reportes, comentarios y datos personales.'
     );
@@ -110,9 +110,21 @@ export default function SettingsPage() {
   };
 
   const tabs = [
-    { id: 'notifications', label: 'Notificaciones', icon: '🔔' },
-    { id: 'privacy', label: 'Privacidad', icon: '🔒' },
-    { id: 'account', label: 'Cuenta', icon: '👤' },
+    { 
+      id: 'notifications', 
+      label: 'Notificaciones', 
+      icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+    },
+    { 
+      id: 'privacy', 
+      label: 'Privacidad', 
+      icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+    },
+    { 
+      id: 'account', 
+      label: 'Cuenta', 
+      icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+    },
   ];
 
   return (
@@ -221,7 +233,12 @@ export default function SettingsPage() {
 
                     <label className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
                       <div>
-                        <div className="font-medium text-gray-900">📱 SMS</div>
+                        <div className="font-medium text-gray-900 flex items-center gap-2">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                          </svg>
+                          SMS
+                        </div>
                         <div className="text-sm text-gray-600">Mensajes de texto (próximamente)</div>
                       </div>
                       <input
@@ -359,8 +376,11 @@ export default function SettingsPage() {
               {activeTab === 'account' && (
                 <div className="space-y-6">
                   <div>
-                    <h2 className="text-xl font-bold text-gray-900 mb-4">
-                      👤 Cuenta
+                    <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      Cuenta
                     </h2>
                     <p className="text-sm text-gray-600 mb-6">
                       Gestiona tu cuenta y datos personales
@@ -408,7 +428,12 @@ export default function SettingsPage() {
                     >
                       <div className="flex items-center justify-between">
                         <div>
-                          <div className="font-medium">📥 Exportar mis datos</div>
+                          <div className="font-medium flex items-center gap-2">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Exportar mis datos
+                          </div>
                           <div className="text-sm text-gray-600">Descargar toda tu información en formato JSON</div>
                         </div>
                         <span className="text-gray-400">→</span>
@@ -418,14 +443,24 @@ export default function SettingsPage() {
 
                   {/* Danger Zone */}
                   <div className="space-y-4 pt-6 border-t border-red-200">
-                    <h3 className="font-medium text-red-600">⚠️ Zona de peligro</h3>
+                    <h3 className="font-medium text-red-600 flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      Zona de peligro
+                    </h3>
                     
                     <button
                       onClick={handleDeleteAccount}
                       className="w-full px-4 py-3 bg-red-50 border border-red-300 text-red-700 rounded-lg hover:bg-red-100 transition-colors text-left"
                     >
                       <div>
-                        <div className="font-medium">🗑️ Eliminar cuenta</div>
+                        <div className="font-medium flex items-center gap-2">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          Eliminar cuenta
+                        </div>
                         <div className="text-sm text-red-600">
                           Esta acción es permanente y no se puede deshacer
                         </div>
