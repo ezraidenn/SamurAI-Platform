@@ -6,6 +6,23 @@ UCU Reporta es una plataforma moderna que combina dos sistemas esenciales para m
 1. **Sistema de Reportes Ciudadanos**: Reporta y da seguimiento a problemas municipales (baches, alumbrado, basura, drenaje, vialidad)
 2. **Directorio de Negocios Locales**: Mapa interactivo con negocios verificados y POIs oficiales (escuelas, hospitales, gobierno)
 
+---
+
+## 🚀 Acceso Rápido
+
+**🌐 Aplicación en Producción:**
+- **Sitio Web**: https://samurai-frontend.vercel.app
+- **Panel Admin**: https://samurai-frontend-9rudra7g2-ezraidenns-projects.vercel.app/admin
+- **API Docs**: https://samurai-backend-s8bz.onrender.com/docs
+
+**📱 Para Usuarios:**
+- Regístrate en el sitio web para reportar problemas o registrar negocios
+- No requiere instalación, funciona desde cualquier navegador
+
+**👨‍💼 Para Administradores:**
+- Accede directamente al panel admin con tus credenciales
+- Gestiona reportes, usuarios, negocios y anuncios desde un solo lugar
+
 ## 🌟 Overview
 
 Plataforma completa con dos módulos principales:
@@ -257,7 +274,9 @@ SamurAI Reportes/
 
 ### URLs de Producción
 - **Frontend**: https://samurai-frontend.vercel.app
-- **Backend**: https://samurai-backend.onrender.com
+- **Admin Dashboard**: https://samurai-frontend-9rudra7g2-ezraidenns-projects.vercel.app/admin
+- **Backend API**: https://samurai-backend-s8bz.onrender.com
+- **API Docs**: https://samurai-backend-s8bz.onrender.com/docs
 - **Base de Datos**: Neon PostgreSQL (pooled connection)
 
 ### Variables de Entorno Requeridas

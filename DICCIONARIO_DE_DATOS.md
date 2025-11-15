@@ -1,9 +1,10 @@
-# 📊 DICCIONARIO DE DATOS - UCU Reporta
+# 📊 DICCIONARIO DE DATOS - UCU Reporta & Negocios
 
-**Sistema:** UCU Reporta  
-**Versión:** 1.0.0  
-**Base de Datos:** SQLite (PostgreSQL-ready)  
-**Fecha:** Noviembre 2024
+**Sistema:** UCU Reporta & Negocios  
+**Versión:** 2.0.0  
+**Base de Datos:** PostgreSQL (Neon)  
+**Fecha:** Noviembre 2025  
+**Producción:** https://samurai-frontend.vercel.app
 
 ---
 
@@ -20,7 +21,7 @@ Almacena información de usuarios (ciudadanos y administradores).
 | `email` | VARCHAR(255) | UNIQUE, NOT NULL | Email para login |
 | `curp` | VARCHAR(18) | UNIQUE, NOT NULL | CURP mexicano |
 | `hashed_password` | VARCHAR(255) | NOT NULL | Password hasheado (bcrypt) |
-| `role` | VARCHAR(50) | NOT NULL, DEFAULT='citizen' | 'citizen' o 'admin' |
+| `role` | VARCHAR(50) | NOT NULL, DEFAULT='citizen' | 'citizen', 'operator', 'supervisor' o 'admin' |
 | `created_at` | TIMESTAMP | DEFAULT=NOW() | Fecha de creación |
 | `updated_at` | TIMESTAMP | ON UPDATE=NOW() | Última actualización |
 
@@ -28,7 +29,13 @@ Almacena información de usuarios (ciudadanos y administradores).
 - CURP: `^[A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z0-9]\d$` (18 caracteres)
 - Email: formato válido
 - Password: mínimo 8 caracteres
-- Role: solo 'citizen' o 'admin'
+- Role: 'citizen', 'operator', 'supervisor', 'admin'
+
+**Relaciones:**
+- `reports`: Reportes creados por el usuario
+- `strikes`: Strikes de moderación
+- `points_of_interest`: POIs/Negocios registrados
+- `announcements`: Anuncios creados (supervisor/admin)
 
 ---
 
@@ -47,6 +54,9 @@ Almacena reportes de incidentes cívicos.
 | `photo_url` | VARCHAR(255) | NULL | URL de foto subida |
 | `priority` | INTEGER | NOT NULL, DEFAULT=1 | Prioridad (1-5) |
 | `status` | VARCHAR(50) | NOT NULL, DEFAULT='pendiente' | Estado del reporte |
+| `assigned_to` | INTEGER | FOREIGN KEY(users.id), NULL | Operador asignado |
+| `ai_validated` | BOOLEAN | DEFAULT=FALSE | Validado por IA |
+| `ai_validation_score` | FLOAT | NULL | Score de validación IA |
 | `created_at` | TIMESTAMP | DEFAULT=NOW() | Fecha de creación |
 | `updated_at` | TIMESTAMP | ON UPDATE=NOW() | Última actualización |
 
@@ -65,6 +75,40 @@ Almacena reportes de incidentes cívicos.
 - `resuelto` - Completado
 
 **priority:** 1 (baja) a 5 (crítica)
+
+---
+
+### Tabla: `points_of_interest`
+
+Almacena negocios y puntos de interés (POIs).
+
+| Campo | Tipo | Restricciones | Descripción |
+|-------|------|---------------|-------------|
+| `id` | INTEGER | PRIMARY KEY | ID único del POI |
+| `user_id` | INTEGER | FOREIGN KEY(users.id) | Usuario que registró el POI |
+| `name` | VARCHAR(255) | NOT NULL | Nombre del negocio/POI |
+| `category` | VARCHAR(100) | NOT NULL | Categoría del POI |
+| `description` | TEXT | NULL | Descripción del negocio |
+| `latitude` | FLOAT | NOT NULL | Coordenada GPS (lat) |
+| `longitude` | FLOAT | NOT NULL | Coordenada GPS (lng) |
+| `photo_url` | VARCHAR(255) | NULL | URL de foto |
+| `phone` | VARCHAR(20) | NULL | Teléfono de contacto |
+| `hours` | VARCHAR(255) | NULL | Horario de atención |
+| `facebook` | VARCHAR(255) | NULL | URL de Facebook |
+| `instagram` | VARCHAR(255) | NULL | URL de Instagram |
+| `is_validated` | BOOLEAN | DEFAULT=FALSE | Validado por admin |
+| `is_official` | BOOLEAN | DEFAULT=FALSE | POI oficial (gobierno) |
+| `ai_validated` | BOOLEAN | DEFAULT=FALSE | Pre-validado por IA |
+| `ai_category_suggestion` | VARCHAR(100) | NULL | Categoría sugerida por IA |
+| `ai_confidence` | FLOAT | NULL | Confianza de validación IA |
+| `created_at` | TIMESTAMP | DEFAULT=NOW() | Fecha de creación |
+| `updated_at` | TIMESTAMP | ON UPDATE=NOW() | Última actualización |
+
+**Categorías de POIs:**
+- `restaurante`, `cafeteria`, `panaderia`, `tienda_abarrotes`, `farmacia`
+- `ferreteria`, `papeleria`, `veterinaria`, `estetica`, `gimnasio`
+- `escuela`, `hospital`, `gobierno`, `iglesia`, `parque`
+- `gasolinera`, `otro`
 
 ---
 
