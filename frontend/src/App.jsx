@@ -20,6 +20,11 @@ import UserManagementPage from './pages/UserManagementPage';
 import ProfilePage from './pages/ProfilePage';
 import OperatorDashboardPage from './pages/OperatorDashboardPage';
 import OperatorReportDetailPage from './pages/OperatorReportDetailPage';
+import RegisterPOIPage from './pages/RegisterPOIPage';
+import PublicPOIsMapPage from './pages/PublicPOIsMapPage';
+import ValidatePOIsPage from './pages/ValidatePOIsPage';
+import MyPOIsPage from './pages/MyPOIsPage';
+import ManagePOIsPage from './pages/ManagePOIsPage';
 
 // Componente interno que usa el hook de timeout
 function AppContent() {
@@ -78,7 +83,59 @@ function AppContent() {
             }
           />
 
+          {/* POI routes - authenticated users */}
+          <Route
+            path="/registrar-poi"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <RegisterPOIPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/mis-puntos"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <MyPOIsPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/mapa-negocios"
+            element={
+              <MainLayout>
+                <PublicPOIsMapPage />
+              </MainLayout>
+            }
+          />
+
           {/* Admin routes - require authentication and admin role */}
+          <Route
+            path="/admin/validar-pois"
+            element={
+              <ProtectedRoute requireAdminOrSupervisor={true}>
+                <MainLayout>
+                  <ValidatePOIsPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/gestionar-pois"
+            element={
+              <ProtectedRoute requireAdminOrSupervisor={true}>
+                <MainLayout>
+                  <ManagePOIsPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/admin"
             element={

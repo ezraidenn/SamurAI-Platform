@@ -13,12 +13,9 @@ import { createReport, uploadReportPhoto, validatePhotoWithAI } from '../service
 import { useAuth } from '../context/AuthContext';
 import { useBanStatus } from '../hooks/useBanStatus';
 import { 
-  COLONIAS_UCU, 
   CODIGOS_POSTALES_UCU, 
   validarCodigoPostalUcu, 
-  validarColoniaUcu,
-  getMensajeErrorCP,
-  getMensajeErrorColonia 
+  getMensajeErrorCP
 } from '../config/ucuData';
 
 // Categorías de daño vial simplificadas
@@ -79,7 +76,6 @@ export default function ReportFormPage() {
   const [success, setSuccess] = useState(false);
 
   const [formData, setFormData] = useState({
-    colonia: '',
     direccion: '',
     codigoPostal: '97357', // Código postal de Ucú pre-llenado
     referencias: '',
@@ -104,9 +100,11 @@ export default function ReportFormPage() {
   };
 
   const handleLocationChange = (location) => {
+    // UcuMapPicker devuelve {lat, lng}, necesitamos convertir a array [lat, lng]
+    const locationArray = location ? [location.lat, location.lng] : null;
     setFormData((prev) => ({
       ...prev,
-      location,
+      location: locationArray,
     }));
     setErrors((prev) => ({
       ...prev,
@@ -159,43 +157,36 @@ export default function ReportFormPage() {
     if (locationData.address) {
       const addr = locationData.address;
       
-      // Prellenar colonia/barrio
-      if (addr.suburb || addr.neighbourhood || addr.quarter) {
-        setFormData(prev => ({
-          ...prev,
-          colonia: addr.suburb || addr.neighbourhood || addr.quarter || ''
-        }));
+      // Prellenar dirección completa
+      let direccionCompleta = '';
+      if (addr.street) {
+        direccionCompleta = addr.houseNumber 
+          ? `${addr.street} ${addr.houseNumber}` 
+          : addr.street;
       }
       
-      // Prellenar dirección
-      const street = addr.road || addr.street || '';
-      const houseNumber = addr.house_number || '';
-      if (street) {
+      // Agregar colonia/barrio si existe
+      if (addr.suburb) {
+        direccionCompleta += direccionCompleta ? `, ${addr.suburb}` : addr.suburb;
+      }
+      
+      if (direccionCompleta) {
         setFormData(prev => ({
           ...prev,
-          direccion: houseNumber ? `${street} ${houseNumber}` : street
+          direccion: direccionCompleta
         }));
       }
       
       // Prellenar código postal
-      if (addr.postcode) {
-        setFormData(prev => ({
-          ...prev,
-          codigoPostal: addr.postcode
-        }));
-      }
+      setFormData(prev => ({
+        ...prev,
+        codigoPostal: addr.postcode || '97357'
+      }));
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
-
-    // Validar colonia
-    if (!formData.colonia) {
-      newErrors.colonia = 'Selecciona tu colonia';
-    } else if (!validarColoniaUcu(formData.colonia)) {
-      newErrors.colonia = getMensajeErrorColonia();
-    }
 
     if (!formData.direccion.trim()) {
       newErrors.direccion = 'La dirección es requerida';
@@ -237,8 +228,7 @@ export default function ReportFormPage() {
 
     try {
       // Crear descripción completa del reporte (sin categoría, la IA la determinará)
-      const descripcionCompleta = `COLONIA: ${formData.colonia}\n` +
-        `DIRECCIÓN: ${formData.direccion}\n` +
+      const descripcionCompleta = `DIRECCIÓN: ${formData.direccion}\n` +
         `CÓDIGO POSTAL: ${formData.codigoPostal}\n` +
         `REFERENCIAS: ${formData.referencias}`;
 
@@ -350,8 +340,8 @@ export default function ReportFormPage() {
       const reportData = {
         category: suggestedCategory, // Categoría sugerida por la IA
         description: descripcionCompleta,
-        latitude: formData.location.lat,
-        longitude: formData.location.lng,
+        latitude: formData.location[0],
+        longitude: formData.location[1],
       };
 
       const createdReport = await createReport(reportData);
@@ -604,46 +594,6 @@ export default function ReportFormPage() {
           </div>
 
           <form onSubmit={handleSubmit} className={`bg-white rounded-2xl shadow-lg p-6 md:p-10 space-y-6 md:space-y-8 ${banStatus.isBanned ? 'opacity-50 pointer-events-none' : ''}`}>
-            {/* Colonia - Dropdown */}
-            <div>
-              <label className="block text-base font-semibold text-gray-800 mb-2">
-                <span className="flex items-center gap-2">
-                  <svg className="w-5 h-5 text-guinda" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  Colonia *
-                </span>
-              </label>
-              <select
-                name="colonia"
-                value={formData.colonia}
-                onChange={handleChange}
-                className={`w-full px-4 py-3 text-base border-2 rounded-lg focus:ring-2 focus:ring-guinda focus:border-guinda transition-all appearance-none bg-white cursor-pointer ${
-                  errors.colonia ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                }`}
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                  backgroundPosition: 'right 0.5rem center',
-                  backgroundRepeat: 'no-repeat',
-                  backgroundSize: '1.5em 1.5em',
-                  paddingRight: '2.5rem'
-                }}
-              >
-                <option value="">Selecciona tu colonia</option>
-                {COLONIAS_UCU.map(colonia => (
-                  <option key={colonia} value={colonia}>
-                    {colonia}
-                  </option>
-                ))}
-              </select>
-              {errors.colonia && (
-                <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
-                  <span>⚠️</span> {errors.colonia}
-                </p>
-              )}
-            </div>
-
             {/* Dirección */}
             <div>
               <label className="block text-base font-semibold text-gray-800 mb-2">

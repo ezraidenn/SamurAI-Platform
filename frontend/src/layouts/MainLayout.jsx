@@ -122,6 +122,39 @@ export default function MainLayout({ children }) {
                       >
                         Mis Reportes
                       </Link>
+                      
+                      <Link
+                        to="/mapa-negocios"
+                        className={`px-3 py-2 rounded-lg transition-colors ${
+                          isActive('/mapa-negocios')
+                            ? 'bg-white text-guinda font-semibold'
+                            : 'hover:bg-guinda-light'
+                        }`}
+                      >
+                        🗺️ Mapa
+                      </Link>
+                      
+                      <Link
+                        to="/registrar-poi"
+                        className={`px-3 py-2 rounded-lg transition-colors ${
+                          isActive('/registrar-poi')
+                            ? 'bg-white text-guinda font-semibold'
+                            : 'hover:bg-guinda-light'
+                        }`}
+                      >
+                        ➕ Registrar
+                      </Link>
+                      
+                      <Link
+                        to="/mis-puntos"
+                        className={`px-3 py-2 rounded-lg transition-colors ${
+                          isActive('/mis-puntos')
+                            ? 'bg-white text-guinda font-semibold'
+                            : 'hover:bg-guinda-light'
+                        }`}
+                      >
+                        📍 Mis Puntos
+                      </Link>
                     </>
                   )}
 
@@ -148,21 +181,83 @@ export default function MainLayout({ children }) {
                       >
                         Usuarios
                       </Link>
+                      <Link
+                        to="/admin/validar-pois"
+                        className={`px-3 py-2 rounded-lg transition-colors ${
+                          isActive('/admin/validar-pois')
+                            ? 'bg-white text-guinda font-semibold'
+                            : 'hover:bg-guinda-light'
+                        }`}
+                      >
+                        ✅ Validar POIs
+                      </Link>
+                      <Link
+                        to="/admin/gestionar-pois"
+                        className={`px-3 py-2 rounded-lg transition-colors ${
+                          isActive('/admin/gestionar-pois')
+                            ? 'bg-white text-guinda font-semibold'
+                            : 'hover:bg-guinda-light'
+                        }`}
+                      >
+                        📋 Gestionar POIs
+                      </Link>
+                      <Link
+                        to="/mapa-negocios"
+                        className={`px-3 py-2 rounded-lg transition-colors ${
+                          isActive('/mapa-negocios')
+                            ? 'bg-white text-guinda font-semibold'
+                            : 'hover:bg-guinda-light'
+                        }`}
+                      >
+                        🗺️ Mapa
+                      </Link>
                     </>
                   )}
 
                   {/* Supervisor Links */}
                   {user.role === 'supervisor' && (
-                    <Link
-                      to="/supervisor"
-                      className={`px-3 py-2 rounded-lg transition-colors ${
-                        isActive('/supervisor')
-                          ? 'bg-white text-guinda font-semibold'
-                          : 'hover:bg-guinda-light'
-                      }`}
-                    >
-                      Dashboard Supervisor
-                    </Link>
+                    <>
+                      <Link
+                        to="/supervisor"
+                        className={`px-3 py-2 rounded-lg transition-colors ${
+                          isActive('/supervisor')
+                            ? 'bg-white text-guinda font-semibold'
+                            : 'hover:bg-guinda-light'
+                        }`}
+                      >
+                        Dashboard
+                      </Link>
+                      <Link
+                        to="/admin/validar-pois"
+                        className={`px-3 py-2 rounded-lg transition-colors ${
+                          isActive('/admin/validar-pois')
+                            ? 'bg-white text-guinda font-semibold'
+                            : 'hover:bg-guinda-light'
+                        }`}
+                      >
+                        ✅ Validar POIs
+                      </Link>
+                      <Link
+                        to="/admin/gestionar-pois"
+                        className={`px-3 py-2 rounded-lg transition-colors ${
+                          isActive('/admin/gestionar-pois')
+                            ? 'bg-white text-guinda font-semibold'
+                            : 'hover:bg-guinda-light'
+                        }`}
+                      >
+                        📋 Gestionar POIs
+                      </Link>
+                      <Link
+                        to="/mapa-negocios"
+                        className={`px-3 py-2 rounded-lg transition-colors ${
+                          isActive('/mapa-negocios')
+                            ? 'bg-white text-guinda font-semibold'
+                            : 'hover:bg-guinda-light'
+                        }`}
+                      >
+                        🗺️ Mapa
+                      </Link>
+                    </>
                   )}
 
                   {/* Operator Links */}
@@ -283,16 +378,92 @@ export default function MainLayout({ children }) {
                         >
                           Mis Reportes
                         </Link>
+                        <Link
+                          to="/mapa-negocios"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block px-3 py-2 rounded-lg hover:bg-guinda-light transition-colors"
+                        >
+                          🗺️ Mapa de Negocios
+                        </Link>
+                        <Link
+                          to="/registrar-poi"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block px-3 py-2 rounded-lg hover:bg-guinda-light transition-colors"
+                        >
+                          ➕ Registrar Negocio
+                        </Link>
+                        <Link
+                          to="/mis-puntos"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block px-3 py-2 rounded-lg hover:bg-guinda-light transition-colors"
+                        >
+                          📍 Mis Puntos
+                        </Link>
                       </>
                     )}
                     {user.role === 'admin' && (
-                      <Link
-                        to="/admin"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="block px-3 py-2 rounded-lg hover:bg-guinda-light transition-colors"
-                      >
-                        Dashboard Admin
-                      </Link>
+                      <>
+                        <Link
+                          to="/admin"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block px-3 py-2 rounded-lg hover:bg-guinda-light transition-colors"
+                        >
+                          Dashboard Admin
+                        </Link>
+                        <Link
+                          to="/admin/validar-pois"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block px-3 py-2 rounded-lg hover:bg-guinda-light transition-colors"
+                        >
+                          ✅ Validar POIs
+                        </Link>
+                        <Link
+                          to="/admin/gestionar-pois"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block px-3 py-2 rounded-lg hover:bg-guinda-light transition-colors"
+                        >
+                          📋 Gestionar POIs
+                        </Link>
+                        <Link
+                          to="/mapa-negocios"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block px-3 py-2 rounded-lg hover:bg-guinda-light transition-colors"
+                        >
+                          🗺️ Mapa de Negocios
+                        </Link>
+                      </>
+                    )}
+                    {user.role === 'supervisor' && (
+                      <>
+                        <Link
+                          to="/supervisor"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block px-3 py-2 rounded-lg hover:bg-guinda-light transition-colors"
+                        >
+                          Dashboard Supervisor
+                        </Link>
+                        <Link
+                          to="/admin/validar-pois"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block px-3 py-2 rounded-lg hover:bg-guinda-light transition-colors"
+                        >
+                          ✅ Validar POIs
+                        </Link>
+                        <Link
+                          to="/admin/gestionar-pois"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block px-3 py-2 rounded-lg hover:bg-guinda-light transition-colors"
+                        >
+                          📋 Gestionar POIs
+                        </Link>
+                        <Link
+                          to="/mapa-negocios"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block px-3 py-2 rounded-lg hover:bg-guinda-light transition-colors"
+                        >
+                          🗺️ Mapa de Negocios
+                        </Link>
+                      </>
                     )}
                     <button
                       onClick={() => {
