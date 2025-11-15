@@ -31,9 +31,12 @@ database/
 *~
 
 # Environment variables
-# .env files are included in repo for development
-# DO NOT include sensitive data in production .env
+# IMPORTANTE: .env contiene credenciales reales y NO debe subirse a Git
+backend/.env
+frontend/.env
+.env
 .env.local
+.env.production
 
 # OS
 .DS_Store
