@@ -9,6 +9,7 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import L from 'leaflet';
 import { getReports, getAdminSummary, updateReportStatus, getPhotoUrl, getUserStrikes } from '../services/api';
+import { formatCategoryName } from '../utils/categoryFormatter';
 
 // Marker colors by status
 const getMarkerIcon = (status) => {
@@ -203,7 +204,7 @@ export default function AdminDashboardPage() {
 
   // Prepare chart data
   const categoryChartData = Object.entries(summary?.count_by_category || {}).map(([name, value]) => ({
-    name: name.charAt(0).toUpperCase() + name.slice(1),
+    name: formatCategoryName(name),
     cantidad: value,
   }));
 
@@ -333,7 +334,7 @@ export default function AdminDashboardPage() {
                               <div className="w-5 h-5 text-guinda flex-shrink-0">
                                 {categoryIcons[report.category] || categoryIcons['bache']}
                               </div>
-                              <p className="font-semibold capitalize">{report.category}</p>
+                              <p className="font-semibold">{formatCategoryName(report.category)}</p>
                             </div>
                             <p className="text-gray-600 text-xs mb-1">{report.description.substring(0, 50)}...</p>
                             <span className={`inline-block px-2 py-1 rounded text-xs ${statusColors[report.status]}`}>
@@ -449,7 +450,7 @@ export default function AdminDashboardPage() {
                               {categoryIcons[report.category] || categoryIcons['bache']}
                             </div>
                             <div className="flex flex-col">
-                              <span className="capitalize">{report.category}</span>
+                              <span>{formatCategoryName(report.category)}</span>
                               {report.ai_validated === 1 && (
                                 <span className="flex items-center text-xs text-purple-600 font-medium">
                                   <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -552,7 +553,7 @@ export default function AdminDashboardPage() {
                         <div className="w-10 h-10 text-guinda flex-shrink-0">
                           {categoryIcons[selectedReport.category] || categoryIcons['bache']}
                         </div>
-                        <span className="text-lg font-medium capitalize">{selectedReport.category}</span>
+                        <p className="text-lg">{formatCategoryName(selectedReport.category)}</p>
                       </div>
                     </div>
 
