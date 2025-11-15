@@ -44,8 +44,10 @@ api.interceptors.response.use(
       // Token expired or invalid - clear auth data
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      // Usar navigate en lugar de window.location para evitar refresh
-      // El componente que reciba el error manejará el redirect
+      localStorage.removeItem('tokenExpiry');
+      
+      // Redirigir a la landing page
+      window.location.href = '/';
     }
     return Promise.reject(error);
   }
