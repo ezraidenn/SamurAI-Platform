@@ -187,11 +187,9 @@ export default function ReportFormPage() {
   const validateForm = () => {
     const newErrors = {};
 
-    // Validar colonia
-    if (!formData.colonia) {
-      newErrors.colonia = 'Selecciona tu colonia';
-    } else if (!validarColoniaUcu(formData.colonia)) {
-      newErrors.colonia = getMensajeErrorColonia();
+    // Validar colonia (campo libre)
+    if (!formData.colonia.trim()) {
+      newErrors.colonia = 'Ingresa tu colonia';
     }
 
     if (!formData.direccion.trim()) {
