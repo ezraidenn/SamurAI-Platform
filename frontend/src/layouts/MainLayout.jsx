@@ -121,6 +121,18 @@ export default function MainLayout({ children }) {
                       >
                         Mis Reportes
                       </Link>
+
+                      {/* Negocios - Un solo botón */}
+                      <Link
+                        to="/negocios"
+                        className={`px-3 py-2 rounded-lg transition-colors ${
+                          isActive('/negocios')
+                            ? 'bg-white text-guinda font-semibold'
+                            : 'hover:bg-guinda-light'
+                        }`}
+                      >
+                        🏪 Negocios
+                      </Link>
                     </>
                   )}
 
@@ -147,21 +159,47 @@ export default function MainLayout({ children }) {
                       >
                         Usuarios
                       </Link>
+
+                      {/* Negocios - Un solo botón */}
+                      <Link
+                        to="/negocios"
+                        className={`px-3 py-2 rounded-lg transition-colors ${
+                          isActive('/negocios')
+                            ? 'bg-white text-guinda font-semibold'
+                            : 'hover:bg-guinda-light'
+                        }`}
+                      >
+                        🏪 Negocios
+                      </Link>
                     </>
                   )}
 
                   {/* Supervisor Links */}
                   {user.role === 'supervisor' && (
-                    <Link
-                      to="/supervisor"
-                      className={`px-3 py-2 rounded-lg transition-colors ${
-                        isActive('/supervisor')
-                          ? 'bg-white text-guinda font-semibold'
-                          : 'hover:bg-guinda-light'
-                      }`}
-                    >
-                      Dashboard Supervisor
-                    </Link>
+                    <>
+                      <Link
+                        to="/supervisor"
+                        className={`px-3 py-2 rounded-lg transition-colors ${
+                          isActive('/supervisor')
+                            ? 'bg-white text-guinda font-semibold'
+                            : 'hover:bg-guinda-light'
+                        }`}
+                      >
+                        Dashboard Supervisor
+                      </Link>
+
+                      {/* Negocios - Un solo botón */}
+                      <Link
+                        to="/negocios"
+                        className={`px-3 py-2 rounded-lg transition-colors ${
+                          isActive('/negocios')
+                            ? 'bg-white text-guinda font-semibold'
+                            : 'hover:bg-guinda-light'
+                        }`}
+                      >
+                        🏪 Negocios
+                      </Link>
+                    </>
                   )}
 
                   {/* Operator Links */}

@@ -40,8 +40,21 @@ if "sqlite" in SQLALCHEMY_DATABASE_URL:
         connect_args={"check_same_thread": False}
     )
 else:
-    # PostgreSQL (Neon) doesn't need check_same_thread
-    engine = create_engine(SQLALCHEMY_DATABASE_URL)
+    # PostgreSQL (Neon) con pool de conexiones optimizado
+    engine = create_engine(
+        SQLALCHEMY_DATABASE_URL,
+        pool_size=10,              # Número de conexiones en el pool
+        max_overflow=20,           # Conexiones adicionales si se necesitan
+        pool_timeout=30,           # Timeout para obtener conexión del pool
+        pool_recycle=3600,         # Reciclar conexiones cada hora
+        pool_pre_ping=True,        # Verificar conexión antes de usar
+        connect_args={
+            "keepalives": 1,
+            "keepalives_idle": 30,
+            "keepalives_interval": 10,
+            "keepalives_count": 5,
+        }
+    )
 
 # SessionLocal class for creating database sessions
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

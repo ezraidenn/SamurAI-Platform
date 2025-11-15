@@ -21,6 +21,11 @@ import ProfilePage from './pages/ProfilePage';
 import OperatorDashboardPage from './pages/OperatorDashboardPage';
 import OperatorReportDetailPage from './pages/OperatorReportDetailPage';
 import HomePage from './pages/HomePage';
+import NegociosPage from './pages/NegociosPage';
+import MapaNegociosPage from './pages/MapaNegociosPage';
+import RegistrarNegocioPage from './pages/RegistrarNegocioPage';
+import MisNegociosPage from './pages/MisNegociosPage';
+import ValidarNegociosPage from './pages/ValidarNegociosPage';
 
 // Componente interno que usa el hook de timeout
 function AppContent() {
@@ -144,6 +149,91 @@ function AppContent() {
               <ProtectedRoute requireMinRole="operator">
                 <MainLayout>
                   <OperatorReportDetailPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Negocios - Unified page for all roles */}
+          <Route
+            path="/negocios"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <NegociosPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Mapa de Negocios - Public */}
+          <Route
+            path="/mapa-negocios"
+            element={
+              <MainLayout>
+                <MapaNegociosPage />
+              </MainLayout>
+            }
+          />
+
+          {/* Registrar Negocio - Citizen */}
+          <Route
+            path="/registrar-negocio"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <RegistrarNegocioPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Mis Negocios - Citizen */}
+          <Route
+            path="/mis-negocios"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <MisNegociosPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Validar Negocios - Admin/Supervisor */}
+          <Route
+            path="/admin/validar-negocios"
+            element={
+              <ProtectedRoute requireMinRole="supervisor">
+                <MainLayout>
+                  <ValidarNegociosPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Gestionar Negocios - Admin */}
+          <Route
+            path="/admin/gestionar-negocios"
+            element={
+              <ProtectedRoute requireAdmin={true}>
+                <MainLayout>
+                  <ValidarNegociosPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Estadísticas Negocios - Admin/Supervisor */}
+          <Route
+            path="/admin/estadisticas-negocios"
+            element={
+              <ProtectedRoute requireMinRole="supervisor">
+                <MainLayout>
+                  <div className="p-8 text-center">
+                    <h1 className="text-3xl font-bold">📊 Estadísticas</h1>
+                    <p className="text-gray-600 mt-4">Próximamente</p>
+                  </div>
                 </MainLayout>
               </ProtectedRoute>
             }

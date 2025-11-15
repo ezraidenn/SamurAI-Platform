@@ -323,4 +323,99 @@ export const getPhotoUrl = (photoUrl) => {
   return `${BASE_URL}${photoUrl}`;
 };
 
+// ============================================================================
+// Points of Interest API
+// ============================================================================
+
+/**
+ * Upload photo for POI
+ */
+export const uploadPOIPhoto = async (file) => {
+  const formData = new FormData();
+  formData.append('photo', file);
+  const response = await api.post('/points-of-interest/upload-photo', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
+  return response.data;
+};
+
+/**
+ * Pre-validate POI with IA
+ */
+export const preValidatePOI = async (poiData) => {
+  const response = await api.post('/points-of-interest/pre-validate', poiData);
+  return response.data;
+};
+
+/**
+ * Create new POI
+ */
+export const createPOI = async (poiData) => {
+  const response = await api.post('/points-of-interest/', poiData);
+  return response.data;
+};
+
+/**
+ * Get public POIs (no auth required)
+ */
+export const getPublicPOIs = async (filters = {}) => {
+  const response = await api.get('/points-of-interest/public', { params: filters });
+  return response.data;
+};
+
+/**
+ * Get my POIs
+ */
+export const getMyPOIs = async () => {
+  const response = await api.get('/points-of-interest/my-pois');
+  return response.data;
+};
+
+/**
+ * Get POIs pending validation (admin)
+ */
+export const getPendingPOIs = async () => {
+  const response = await api.get('/points-of-interest/pending-validation');
+  return response.data;
+};
+
+/**
+ * Get all POIs (admin)
+ */
+export const getAllPOIs = async (filters = {}) => {
+  const response = await api.get('/points-of-interest/all', { params: filters });
+  return response.data;
+};
+
+/**
+ * Validate POI (admin)
+ */
+export const validatePOI = async (poiId, validationData) => {
+  const response = await api.put(`/points-of-interest/${poiId}/validate`, validationData);
+  return response.data;
+};
+
+/**
+ * Update POI
+ */
+export const updatePOI = async (poiId, poiData) => {
+  const response = await api.put(`/points-of-interest/${poiId}`, poiData);
+  return response.data;
+};
+
+/**
+ * Delete POI
+ */
+export const deletePOI = async (poiId) => {
+  await api.delete(`/points-of-interest/${poiId}`);
+};
+
+/**
+ * Get POI stats (admin)
+ */
+export const getPOIStats = async () => {
+  const response = await api.get('/points-of-interest/stats');
+  return response.data;
+};
+
 export default api;

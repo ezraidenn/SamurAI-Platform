@@ -11,6 +11,7 @@ from backend.routes import users as users_router
 from backend.routes import reports as reports_router
 from backend.routes import admin as admin_router
 from backend.routes import name_change as name_change_router
+from backend.routes import points_of_interest as pois_router
 from backend.config import CORS_ORIGINS
 
 
@@ -50,6 +51,7 @@ app.include_router(users_router.router)          # /auth endpoints
 app.include_router(reports_router.router)        # /reports endpoints
 app.include_router(admin_router.router)          # /admin endpoints
 app.include_router(name_change_router.router)    # /name-change endpoints
+app.include_router(pois_router.router)           # /points-of-interest endpoints
 
 
 @app.on_event("startup")
