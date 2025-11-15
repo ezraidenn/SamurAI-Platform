@@ -282,23 +282,26 @@ export default function ReportFormPage() {
           
         } catch (validationError) {
           // Photo was rejected by AI
-          console.error('❌ Foto rechazada:', validationError);
+          console.error('❌ Error de validación:', validationError);
+          console.log('📋 Respuesta completa:', validationError.response?.data);
           
-          if (validationError.response?.data?.detail?.error === 'invalid_image') {
-            const detail = validationError.response.data.detail;
+          const errorDetail = validationError.response?.data?.detail;
+          console.log('🔍 Error detail:', errorDetail);
+          
+          if (errorDetail?.error === 'invalid_image') {
             setStrikeData({
               type: 'image',
-              message: detail.professional_feedback || detail.rejection_reason,
-              details: detail.ai_analysis?.observed_details,
-              isJoke: detail.ai_analysis?.is_joke_or_fake,
-              isOffensive: detail.ai_analysis?.is_offensive,
-              isInappropriate: detail.ai_analysis?.is_inappropriate,
-              strikeIssued: detail.strike_issued,
-              strikeCount: detail.strike_count,
-              isBanned: detail.is_banned,
-              banUntil: detail.ban_until,
-              banReason: detail.ban_reason,
-              isPermanentBan: detail.is_permanent_ban
+              message: errorDetail.professional_feedback || errorDetail.rejection_reason,
+              details: errorDetail.ai_analysis?.observed_details,
+              isJoke: errorDetail.ai_analysis?.is_joke_or_fake,
+              isOffensive: errorDetail.ai_analysis?.is_offensive,
+              isInappropriate: errorDetail.ai_analysis?.is_inappropriate,
+              strikeIssued: errorDetail.strike_issued,
+              strikeCount: errorDetail.strike_count,
+              isBanned: errorDetail.is_banned,
+              banUntil: errorDetail.ban_until,
+              banReason: errorDetail.ban_reason,
+              isPermanentBan: errorDetail.is_permanent_ban
             });
             setShowStrikeModal(true);
             setLoading(false);
@@ -306,20 +309,19 @@ export default function ReportFormPage() {
           }
           
           // Check if text is offensive
-          if (validationError.response?.data?.detail?.error === 'offensive_text') {
-            const detail = validationError.response.data.detail;
+          if (errorDetail?.error === 'offensive_text') {
             setStrikeData({
               type: 'text',
-              message: detail.professional_feedback || detail.rejection_reason,
-              detectedWords: detail.detected_words,
+              message: errorDetail.professional_feedback || errorDetail.rejection_reason,
+              detectedWords: errorDetail.detected_words,
               isOffensive: true,
-              offenseType: detail.offense_type,
-              strikeIssued: detail.strike_issued,
-              strikeCount: detail.strike_count,
-              isBanned: detail.is_banned,
-              banUntil: detail.ban_until,
-              banReason: detail.ban_reason,
-              isPermanentBan: detail.is_permanent_ban
+              offenseType: errorDetail.offense_type,
+              strikeIssued: errorDetail.strike_issued,
+              strikeCount: errorDetail.strike_count,
+              isBanned: errorDetail.is_banned,
+              banUntil: errorDetail.ban_until,
+              banReason: errorDetail.ban_reason,
+              isPermanentBan: errorDetail.is_permanent_ban
             });
             setShowStrikeModal(true);
             setLoading(false);
@@ -327,16 +329,15 @@ export default function ReportFormPage() {
           }
           
           // Check if user is banned
-          if (validationError.response?.data?.detail?.error === 'user_banned') {
-            const detail = validationError.response.data.detail;
-            setError(detail.message);
+          if (errorDetail?.error === 'user_banned') {
+            setError(errorDetail.message);
             setImageRejection({
-              message: detail.reason,
+              message: errorDetail.reason,
               isBanned: true,
-              isPermanentBan: detail.is_permanent,
-              banUntil: detail.ban_until,
-              timeRemaining: detail.time_remaining,
-              strikeCount: detail.strike_count
+              isPermanentBan: errorDetail.is_permanent,
+              banUntil: errorDetail.ban_until,
+              timeRemaining: errorDetail.time_remaining,
+              strikeCount: errorDetail.strike_count
             });
             window.scrollTo({ top: 0, behavior: 'smooth' });
             setLoading(false);
