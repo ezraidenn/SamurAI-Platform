@@ -22,6 +22,22 @@ export default function MainLayout({ children }) {
 
   const isActive = (path) => location.pathname === path;
 
+  // Función para manejar el clic en el logo
+  const handleLogoClick = (e) => {
+    e.preventDefault();
+    if (user) {
+      // Si hay sesión activa, redirigir al dashboard según el rol
+      if (user.role === 'admin') {
+        navigate('/admin');
+      } else if (user.role === 'citizen') {
+        navigate('/panel');
+      }
+    } else {
+      // Si no hay sesión, ir al home público
+      navigate('/');
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Top Navbar */}
@@ -29,11 +45,15 @@ export default function MainLayout({ children }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <Link to="/" className="flex items-center space-x-2">
+            <a 
+              href="#" 
+              onClick={handleLogoClick}
+              className="flex items-center space-x-2 cursor-pointer hover:opacity-90 transition-opacity"
+            >
               <div className="text-2xl font-bold">
                 UCU Reporta
               </div>
-            </Link>
+            </a>
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-6">
