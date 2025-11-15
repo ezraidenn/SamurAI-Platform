@@ -14,6 +14,7 @@ import ReportFormPage from './pages/ReportFormPage';
 import CitizenDashboardPage from './pages/CitizenDashboardPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import UserManagementPage from './pages/UserManagementPage';
+import ProfilePage from './pages/ProfilePage';
 
 function App() {
   return (
@@ -43,6 +44,17 @@ function App() {
               <ProtectedRoute>
                 <MainLayout>
                   <CitizenDashboardPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/perfil"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <ProfilePage />
                 </MainLayout>
               </ProtectedRoute>
             }

@@ -121,7 +121,16 @@ export default function MainLayout({ children }) {
 
                   {/* User Info & Logout */}
                   <div className="flex items-center space-x-4">
-                    <span className="text-sm">Hola, {user.name}</span>
+                    <Link
+                      to="/perfil"
+                      className={`px-3 py-2 rounded-lg transition-colors ${
+                        isActive('/perfil')
+                          ? 'bg-white text-guinda font-semibold'
+                          : 'hover:bg-guinda-light'
+                      }`}
+                    >
+                      👤 {user.name}
+                    </Link>
                     <button
                       onClick={handleLogout}
                       className="px-4 py-2 bg-guinda-dark hover:bg-black rounded-lg transition-colors"
@@ -191,9 +200,13 @@ export default function MainLayout({ children }) {
               <div className="px-4 py-4 space-y-2">
                 {user ? (
                   <>
-                    <div className="text-sm pb-2 border-b border-guinda-light">
-                      Hola, {user.name}
-                    </div>
+                    <Link
+                      to="/perfil"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block px-3 py-2 rounded-lg hover:bg-guinda-light transition-colors border-b border-guinda-light mb-2"
+                    >
+                      👤 Mi Perfil - {user.name}
+                    </Link>
                     {user.role === 'citizen' && (
                       <>
                         <Link
