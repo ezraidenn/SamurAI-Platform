@@ -185,6 +185,16 @@ export const getAdminSummary = async () => {
 };
 
 /**
+ * Get user strike history (admin only)
+ * @param {number} userId - User ID
+ * @returns {Promise} User strikes data
+ */
+export const getUserStrikes = async (userId) => {
+  const response = await api.get(`/auth/users/${userId}/strikes`);
+  return response.data;
+};
+
+/**
  * Update report status (admin only)
  * @param {number} reportId - Report ID
  * @param {Object} statusData - New status and optional comment

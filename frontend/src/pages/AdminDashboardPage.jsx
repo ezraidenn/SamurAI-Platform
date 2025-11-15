@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import L from 'leaflet';
-import { getReports, getAdminSummary, updateReportStatus, getPhotoUrl } from '../services/api';
+import { getReports, getAdminSummary, updateReportStatus, getPhotoUrl, getUserStrikes } from '../services/api';
 
 // Marker colors by status
 const getMarkerIcon = (status) => {
@@ -67,6 +67,15 @@ export default function AdminDashboardPage() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [statusUpdate, setStatusUpdate] = useState({ status: '', comment: '' });
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [userStrikes, setUserStrikes] = useState(null);
+  const [loadingStrikes, setLoadingStrikes] = useState(false);
+  
+  // Map filters
+  const [mapFilters, setMapFilters] = useState({
+    pendiente: true,
+    en_proceso: true,
+    resuelto: true
+  });
 
   useEffect(() => {
     fetchData();
@@ -89,6 +98,37 @@ export default function AdminDashboardPage() {
       setLoading(false);
     }
   };
+
+  const fetchUserStrikes = async (userId) => {
+    setLoadingStrikes(true);
+    try {
+      const data = await getUserStrikes(userId);
+      setUserStrikes(data);
+    } catch (err) {
+      console.error('Error fetching user strikes:', err);
+      setUserStrikes(null);
+    } finally {
+      setLoadingStrikes(false);
+    }
+  };
+
+  const handleReportClick = async (report) => {
+    setSelectedReport(report);
+    setShowDetailsModal(true);
+    // Load user strikes when opening details
+    if (report.user_id) {
+      await fetchUserStrikes(report.user_id);
+    }
+  };
+
+  const toggleMapFilter = (status) => {
+    setMapFilters(prev => ({
+      ...prev,
+      [status]: !prev[status]
+    }));
+  };
+
+  const filteredReports = reports.filter(report => mapFilters[report.status]);
 
   const handleStatusChange = async () => {
     if (!selectedReport || !statusUpdate.status) return;
@@ -120,9 +160,8 @@ export default function AdminDashboardPage() {
     setShowStatusModal(true);
   };
 
-  const openDetailsModal = (report) => {
-    setSelectedReport(report);
-    setShowDetailsModal(true);
+  const openDetailsModal = async (report) => {
+    await handleReportClick(report);
   };
 
   const formatDate = (dateString) => {
@@ -213,11 +252,48 @@ export default function AdminDashboardPage() {
               transition={{ delay: 0.5 }}
               className="bg-white rounded-2xl shadow-md p-6"
             >
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                Mapa de Reportes ({reports.length})
-              </h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold text-gray-800">
+                  Mapa de Reportes ({filteredReports.length}/{reports.length})
+                </h2>
+                
+                {/* Map Filters */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => toggleMapFilter('pendiente')}
+                    className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
+                      mapFilters.pendiente
+                        ? 'bg-yellow-500 text-white shadow-md'
+                        : 'bg-gray-200 text-gray-500'
+                    }`}
+                  >
+                    🟡 Pendiente
+                  </button>
+                  <button
+                    onClick={() => toggleMapFilter('en_proceso')}
+                    className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
+                      mapFilters.en_proceso
+                        ? 'bg-blue-500 text-white shadow-md'
+                        : 'bg-gray-200 text-gray-500'
+                    }`}
+                  >
+                    🔵 En Proceso
+                  </button>
+                  <button
+                    onClick={() => toggleMapFilter('resuelto')}
+                    className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
+                      mapFilters.resuelto
+                        ? 'bg-green-500 text-white shadow-md'
+                        : 'bg-gray-200 text-gray-500'
+                    }`}
+                  >
+                    🟢 Resuelto
+                  </button>
+                </div>
+              </div>
+              
               <div className="h-96 rounded-lg overflow-hidden border-2 border-gray-300 relative z-0">
-                {reports.length > 0 ? (
+                {filteredReports.length > 0 ? (
                   <MapContainer
                     center={mapCenter}
                     zoom={12}
@@ -229,7 +305,7 @@ export default function AdminDashboardPage() {
                       attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                       url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     />
-                    {reports.map((report) => (
+                    {filteredReports.map((report) => (
                       <Marker
                         key={report.id}
                         position={[report.latitude, report.longitude]}
@@ -731,6 +807,104 @@ export default function AdminDashboardPage() {
                         </div>
                       </div>
                     </div>
+
+                    {/* User Strikes History */}
+                    {loadingStrikes ? (
+                      <div className="bg-gray-50 p-6 rounded-lg">
+                        <p className="text-sm text-gray-500 text-center">Cargando historial de strikes...</p>
+                      </div>
+                    ) : userStrikes && userStrikes.strikes && userStrikes.strikes.length > 0 ? (
+                      <div className="bg-gradient-to-br from-red-50 to-orange-50 p-6 rounded-lg border-2 border-red-200">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center">
+                            <svg className="w-6 h-6 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                            <h4 className="text-lg font-bold text-red-900">Historial de Strikes</h4>
+                          </div>
+                          <span className="px-3 py-1 bg-red-600 text-white rounded-full text-sm font-bold">
+                            {userStrikes.total_strikes}/5
+                          </span>
+                        </div>
+
+                        {userStrikes.is_banned === 1 && (
+                          <div className="bg-red-100 border-l-4 border-red-600 p-3 mb-4 rounded">
+                            <p className="text-sm font-bold text-red-900">
+                              🔒 Usuario Suspendido
+                            </p>
+                            <p className="text-xs text-red-700 mt-1">
+                              {userStrikes.ban_reason}
+                            </p>
+                          </div>
+                        )}
+
+                        <div className="space-y-3 max-h-64 overflow-y-auto">
+                          {userStrikes.strikes.map((strike, index) => (
+                            <div key={strike.id} className="bg-white p-4 rounded-lg border border-red-200">
+                              <div className="flex items-start justify-between mb-2">
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-lg font-bold text-red-600">#{userStrikes.strikes.length - index}</span>
+                                  <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                                    strike.severity === 'critical' ? 'bg-red-600 text-white' :
+                                    strike.severity === 'high' ? 'bg-orange-500 text-white' :
+                                    strike.severity === 'medium' ? 'bg-yellow-500 text-white' :
+                                    'bg-gray-400 text-white'
+                                  }`}>
+                                    {strike.severity.toUpperCase()}
+                                  </span>
+                                  <span className="text-xs text-gray-500">
+                                    {strike.content_type === 'image' ? '📷 Imagen' : '📝 Texto'}
+                                  </span>
+                                </div>
+                                <span className="text-xs text-gray-500">
+                                  {new Date(strike.created_at).toLocaleDateString('es-MX', {
+                                    day: '2-digit',
+                                    month: 'short',
+                                    year: 'numeric'
+                                  })}
+                                </span>
+                              </div>
+                              
+                              <p className="text-sm text-gray-800 font-medium mb-2">
+                                {strike.reason}
+                              </p>
+                              
+                              {strike.ai_detection && (
+                                <p className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                                  🤖 {strike.ai_detection}
+                                </p>
+                              )}
+                              
+                              {(strike.is_offensive || strike.is_inappropriate) && (
+                                <div className="flex gap-2 mt-2">
+                                  {strike.is_offensive && (
+                                    <span className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded">
+                                      🚨 Ofensivo
+                                    </span>
+                                  )}
+                                  {strike.is_inappropriate && (
+                                    <span className="text-xs px-2 py-1 bg-orange-100 text-orange-700 rounded">
+                                      ⚠️ Inapropiado
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : userStrikes && userStrikes.total_strikes === 0 ? (
+                      <div className="bg-green-50 p-6 rounded-lg border-2 border-green-200">
+                        <div className="flex items-center">
+                          <svg className="w-6 h-6 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                          <p className="text-sm font-semibold text-green-800">
+                            ✅ Usuario sin infracciones
+                          </p>
+                        </div>
+                      </div>
+                    ) : null}
 
                     {/* Photo */}
                     <div>

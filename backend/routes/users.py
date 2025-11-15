@@ -6,8 +6,10 @@ Handles user registration, login, and profile endpoints.
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
+from typing import List
 from backend.database import get_db
 from backend.models.user import User
+from backend.models.strike import Strike
 from backend.schemas.user import UserCreate, UserLogin, UserResponse
 from backend.auth.jwt_handler import create_access_token, get_current_user
 from backend.utils.curp_validator import validate_curp
@@ -158,3 +160,68 @@ async def get_current_user_profile(current_user: User = Depends(get_current_user
         Current user's profile information
     """
     return current_user
+
+
+@router.get("/users/{user_id}/strikes")
+async def get_user_strikes(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get strike history for a specific user.
+    
+    Only accessible by admin users.
+    
+    Args:
+        user_id: ID of the user to get strikes for
+        db: Database session
+        current_user: Authenticated user (must be admin)
+        
+    Returns:
+        List of strikes with details
+        
+    Raises:
+        403: If user is not admin
+        404: If user not found
+    """
+    # Check if current user is admin
+    if current_user.role != 'admin':
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Solo administradores pueden ver el historial de strikes"
+        )
+    
+    # Check if user exists
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuario no encontrado"
+        )
+    
+    # Get all strikes for this user
+    strikes = db.query(Strike).filter(Strike.user_id == user_id).order_by(Strike.created_at.desc()).all()
+    
+    return {
+        "user_id": user_id,
+        "user_name": user.name,
+        "user_email": user.email,
+        "total_strikes": user.strike_count,
+        "is_banned": user.is_banned,
+        "ban_until": user.ban_until,
+        "ban_reason": user.ban_reason,
+        "strikes": [
+            {
+                "id": strike.id,
+                "reason": strike.reason,
+                "severity": strike.severity,
+                "content_type": strike.content_type,
+                "ai_detection": strike.ai_detection,
+                "is_offensive": strike.is_offensive,
+                "is_inappropriate": strike.is_inappropriate,
+                "created_at": strike.created_at.isoformat()
+            }
+            for strike in strikes
+        ]
+    }
