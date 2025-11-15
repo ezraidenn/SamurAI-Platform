@@ -7,6 +7,9 @@
 // Códigos postales válidos para Ucú, Yucatán
 export const CODIGOS_POSTALES_UCU = [
   '97357', // Código postal principal de Ucú
+  '97350', // Código postal alternativo
+  '97358', // Código postal de algunas colonias
+  '97359', // Código postal de localidades
 ];
 
 // Colonias y localidades del municipio de Ucú

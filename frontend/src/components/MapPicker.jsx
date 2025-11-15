@@ -18,11 +18,19 @@ L.Icon.Default.mergeOptions({
 });
 
 // Component to handle map clicks and draggable marker
-function LocationMarker({ position, setPosition, onDragEnd }) {
+function LocationMarker({ position, setPosition, onDragEnd, isWithinUcu, onOutOfBounds }) {
   const markerRef = useRef(null);
   
   useMapEvents({
     click(e) {
+      // Validar que esté dentro de Ucú
+      if (!isWithinUcu(e.latlng.lat, e.latlng.lng)) {
+        if (onOutOfBounds) {
+          onOutOfBounds();
+        }
+        return;
+      }
+      
       setPosition({
         lat: e.latlng.lat,
         lng: e.latlng.lng,
@@ -40,6 +48,19 @@ function LocationMarker({ position, setPosition, onDragEnd }) {
         const marker = markerRef.current;
         if (marker != null) {
           const latlng = marker.getLatLng();
+          
+          // Validar que esté dentro de Ucú
+          if (!isWithinUcu(latlng.lat, latlng.lng)) {
+            if (onOutOfBounds) {
+              onOutOfBounds();
+            }
+            // Revertir a la posición anterior
+            if (position) {
+              marker.setLatLng([position.lat, position.lng]);
+            }
+            return;
+          }
+          
           setPosition({
             lat: latlng.lat,
             lng: latlng.lng,
@@ -51,7 +72,7 @@ function LocationMarker({ position, setPosition, onDragEnd }) {
         }
       },
     }),
-    [setPosition, onDragEnd]
+    [setPosition, onDragEnd, isWithinUcu, onOutOfBounds, position]
   );
 
   return position ? (
@@ -65,12 +86,29 @@ function LocationMarker({ position, setPosition, onDragEnd }) {
 }
 
 export default function MapPicker({ value, onChange, onLocationFound, height = 'h-96' }) {
-  // Default center: Mérida, Yucatán
-  const defaultCenter = { lat: 20.9674, lng: -89.5926 };
+  // Default center: Ucú, Yucatán
+  const defaultCenter = { lat: 21.0833, lng: -89.7167 };
+  
+  // Límites geográficos aproximados de Ucú (bounding box)
+  const ucuBounds = {
+    north: 21.15,  // Límite norte
+    south: 21.02,  // Límite sur
+    east: -89.65,  // Límite este
+    west: -89.78   // Límite oeste
+  };
+  
   const [position, setPosition] = useState(value || null);
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [locationError, setLocationError] = useState('');
   const mapRef = useRef(null);
+  
+  // Función para verificar si una ubicación está dentro de Ucú
+  const isWithinUcu = (lat, lng) => {
+    return lat >= ucuBounds.south && 
+           lat <= ucuBounds.north && 
+           lng >= ucuBounds.west && 
+           lng <= ucuBounds.east;
+  };
 
   const handlePositionChange = (newPosition) => {
     setPosition(newPosition);
@@ -176,10 +214,12 @@ export default function MapPicker({ value, onChange, onLocationFound, height = '
       <div className={`${height} rounded-lg overflow-hidden border-2 border-gray-300 relative`}>
         <MapContainer
           center={[defaultCenter.lat, defaultCenter.lng]}
-          zoom={13}
+          zoom={14}
           style={{ height: '100%', width: '100%' }}
           scrollWheelZoom={true}
           ref={mapRef}
+          maxBounds={[[ucuBounds.south, ucuBounds.west], [ucuBounds.north, ucuBounds.east]]}
+          maxBoundsViscosity={1.0}
         >
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -188,6 +228,11 @@ export default function MapPicker({ value, onChange, onLocationFound, height = '
           <LocationMarker 
             position={position} 
             setPosition={handlePositionChange}
+            isWithinUcu={isWithinUcu}
+            onOutOfBounds={() => {
+              setLocationError('⚠️ Por favor selecciona una ubicación dentro del municipio de Ucú');
+              setTimeout(() => setLocationError(''), 3000);
+            }}
             onDragEnd={async (lat, lng) => {
               // Trigger reverse geocoding when marker is dragged
               if (onLocationFound) {
