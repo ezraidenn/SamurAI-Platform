@@ -17,6 +17,8 @@ import CitizenDashboardPage from './pages/CitizenDashboardPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import UserManagementPage from './pages/UserManagementPage';
 import ProfilePage from './pages/ProfilePage';
+import OperatorDashboardPage from './pages/OperatorDashboardPage';
+import OperatorReportDetailPage from './pages/OperatorReportDetailPage';
 
 // Componente interno que usa el hook de timeout
 function AppContent() {
@@ -105,7 +107,18 @@ function AppContent() {
             element={
               <ProtectedRoute requireMinRole="operator">
                 <MainLayout>
-                  <AdminDashboardPage />
+                  <OperatorDashboardPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/operator/report/:id"
+            element={
+              <ProtectedRoute requireMinRole="operator">
+                <MainLayout>
+                  <OperatorReportDetailPage />
                 </MainLayout>
               </ProtectedRoute>
             }

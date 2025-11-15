@@ -23,7 +23,7 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 # Definir modelo User aquí para evitar imports circulares
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, Text
 from sqlalchemy.sql import func
 
 class User(Base):
@@ -36,6 +36,14 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     role = Column(String, default="citizen", nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    
+    # Moderation fields
+    strike_count = Column(Integer, default=0, nullable=False)
+    is_banned = Column(Integer, default=0, nullable=False)
+    ban_until = Column(DateTime(timezone=True), nullable=True)
+    ban_reason = Column(Text, nullable=True)
+    last_strike_at = Column(DateTime(timezone=True), nullable=True)
 
 # Configuración de la base de datos
 DATABASE_URL = "sqlite:///./database/ucudigital.db"
@@ -144,6 +152,41 @@ def create_test_citizen():
     finally:
         db.close()
 
+def create_test_operator():
+    """Crea un usuario operador de prueba"""
+    
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    db = SessionLocal()
+    
+    try:
+        # Verificar si el usuario ya existe
+        existing_user = db.query(User).filter(User.email == "operador@ucu.gob.mx").first()
+        
+        if not existing_user:
+            operator_user = User(
+                name="Juan Pérez - Operador",
+                email="operador@ucu.gob.mx",
+                curp="PEJJ850315HYNXXX02",
+                hashed_password=get_password_hash("operador123"),
+                role="operator"
+            )
+            
+            db.add(operator_user)
+            db.commit()
+            print("\n✅ Usuario operador de prueba creado")
+            print("   Email: operador@ucu.gob.mx")
+            print("   Password: operador123")
+            print("   URL: http://localhost:3000/operator")
+        else:
+            print("\n✅ Usuario operador de prueba ya existe")
+            
+    except Exception as e:
+        print(f"❌ Error al crear usuario operador: {e}")
+        db.rollback()
+    finally:
+        db.close()
+
 if __name__ == "__main__":
     print("🔧 Configurando usuarios de UCU Reporta...\n")
     
@@ -152,6 +195,9 @@ if __name__ == "__main__":
     
     # Crear usuario ciudadano de prueba
     create_test_citizen()
+    
+    # Crear usuario operador de prueba
+    create_test_operator()
     
     print("\n✅ Configuración completada!")
     print("\nPuedes iniciar sesión con cualquiera de las credenciales mostradas.")
