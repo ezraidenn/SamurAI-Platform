@@ -358,7 +358,19 @@ async def create_report(
     db.commit()
     db.refresh(new_report)
     
-    return new_report
+    # Add user information to response
+    report_dict = {
+        **new_report.__dict__,
+        "user": {
+            "id": current_user.id,
+            "name": current_user.name,
+            "email": current_user.email,
+            "role": current_user.role,
+            "curp": current_user.curp
+        }
+    }
+    
+    return report_dict
 
 
 @router.get("/", response_model=List[ReportResponse])
@@ -596,7 +608,19 @@ async def upload_report_photo(
     db.commit()
     db.refresh(report)
     
-    return report
+    # Add user information to response
+    report_dict = {
+        **report.__dict__,
+        "user": {
+            "id": report.user.id,
+            "name": report.user.name,
+            "email": report.user.email,
+            "role": report.user.role,
+            "curp": report.user.curp
+        } if report.user else None
+    }
+    
+    return report_dict
 
 
 @router.get("/public/approved", response_model=List[ReportResponse])

@@ -147,7 +147,7 @@ export const cancelNameChangeRequest = async (requestId) => {
  * @returns {Promise} Created report
  */
 export const createReport = async (reportData) => {
-  const response = await api.post('/reports', reportData);
+  const response = await api.post('/reports/', reportData);
   return response.data;
 };
 
