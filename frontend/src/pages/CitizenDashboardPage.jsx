@@ -4,11 +4,12 @@
  * Shows citizen's own reports with filters, statistics, and charts.
  */
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { getReports, getPhotoUrl } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { formatCategoryName } from '../utils/categoryFormatter';
 
 const statusColors = {
   pendiente: 'bg-yellow-100 text-yellow-800',
@@ -100,7 +101,7 @@ export default function CitizenDashboardPage() {
       return acc;
     }, {})
   ).map(([category, count]) => ({
-    name: category.charAt(0).toUpperCase() + category.slice(1),
+    name: formatCategoryName(category),
     cantidad: count,
   }));
 
@@ -315,7 +316,7 @@ export default function CitizenDashboardPage() {
                             <div className="w-6 h-6 text-guinda flex-shrink-0">
                               {categoryIcons[report.category] || categoryIcons['bache']}
                             </div>
-                            <span className="capitalize">{report.category}</span>
+                            <span>{formatCategoryName(report.category)}</span>
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
@@ -357,7 +358,7 @@ export default function CitizenDashboardPage() {
                             {categoryIcons[report.category] || categoryIcons['bache']}
                           </div>
                           <div>
-                            <p className="font-semibold text-gray-900 capitalize">{report.category}</p>
+                            <p className="font-semibold text-gray-900">{formatCategoryName(report.category)}</p>
                             <p className="text-xs text-gray-500">#{report.id}</p>
                           </div>
                         </div>
@@ -422,7 +423,7 @@ export default function CitizenDashboardPage() {
                     <div className="w-8 h-8 text-guinda flex-shrink-0">
                       {categoryIcons[selectedReport.category] || categoryIcons['bache']}
                     </div>
-                    <p className="text-lg capitalize">{selectedReport.category}</p>
+                    <p className="text-lg">{formatCategoryName(selectedReport.category)}</p>
                   </div>
                 </div>
 
