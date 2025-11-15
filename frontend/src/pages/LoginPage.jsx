@@ -3,13 +3,14 @@
  * Sin refresh, con mejor manejo de errores
  */
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { loginUser } from '../services/api';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, isAuthenticated, isAdmin } = useAuth();
 
   const [email, setEmail] = useState('');
@@ -17,6 +18,16 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [sessionExpiredMessage, setSessionExpiredMessage] = useState('');
+
+  // Verificar mensaje de sesión expirada
+  useEffect(() => {
+    if (location.state?.message) {
+      setSessionExpiredMessage(location.state.message);
+      // Limpiar el mensaje después de 10 segundos
+      setTimeout(() => setSessionExpiredMessage(''), 10000);
+    }
+  }, [location]);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -124,6 +135,25 @@ export default function LoginPage() {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Bienvenido</h1>
             <p className="text-gray-600">Inicia sesión en UCU Reporta</p>
           </div>
+
+          {/* Session Expired Message */}
+          <AnimatePresence>
+            {sessionExpiredMessage && (
+              <motion.div
+                initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="mb-6 p-4 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg"
+              >
+                <div className="flex items-center">
+                  <svg className="w-5 h-5 text-amber-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                  <p className="text-sm text-amber-800 font-medium">{sessionExpiredMessage}</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Error Message */}
           <AnimatePresence>

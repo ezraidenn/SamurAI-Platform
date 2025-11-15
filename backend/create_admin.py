@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from database.database import Base
+from database import Base
 from passlib.context import CryptContext
 
 # Password hashing
