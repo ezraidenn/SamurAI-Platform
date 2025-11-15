@@ -200,7 +200,11 @@ export const getAllAnnouncements = async (includeInactive = false) => {
  */
 export const createAnnouncement = async (formData) => {
   // No establecer Content-Type manualmente - el navegador lo hace automáticamente con el boundary correcto
-  const response = await api.post('/announcements/', formData);
+  const response = await api.post('/announcements/', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
   return response.data;
 };
 
