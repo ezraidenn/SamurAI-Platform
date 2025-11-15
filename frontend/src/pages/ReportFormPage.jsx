@@ -242,6 +242,9 @@ export default function ReportFormPage() {
         `CÓDIGO POSTAL: ${formData.codigoPostal}\n` +
         `REFERENCIAS: ${formData.referencias}`;
 
+      // Variable para guardar la categoría sugerida por la IA
+      let suggestedCategory = 'bache'; // Default
+      
       // STEP 1: Validate photo with AI FIRST (if photo provided)
       if (formData.photo) {
         console.log('🔍 Validando foto con IA...');
@@ -254,6 +257,12 @@ export default function ReportFormPage() {
           );
           
           console.log('✅ Foto validada:', validationResult);
+          
+          // Guardar la categoría sugerida por la IA
+          if (validationResult.ai_analysis?.suggested_category) {
+            suggestedCategory = validationResult.ai_analysis.suggested_category;
+            console.log('🤖 IA sugiere categoría:', suggestedCategory);
+          }
           
           // If validation returned AI analysis, show it to user
           if (validationResult.ai_analysis) {
@@ -337,8 +346,9 @@ export default function ReportFormPage() {
 
       // STEP 2: Create report (only if photo passed validation or no photo)
       console.log('📝 Creando reporte...');
+      console.log('📂 Usando categoría:', suggestedCategory);
       const reportData = {
-        category: 'bache', // Categoría base para el backend
+        category: suggestedCategory, // Categoría sugerida por la IA
         description: descripcionCompleta,
         latitude: formData.location.lat,
         longitude: formData.location.lng,

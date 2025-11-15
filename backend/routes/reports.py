@@ -124,17 +124,19 @@ async def validate_photo_with_ai(
             image_path=temp_path
         )
         
-        # Check if image is valid
-        if ai_analysis and not ai_analysis.get("is_valid", True):
+        # Check ONLY for offensive/inappropriate content, NOT category mismatch
+        # La IA sugerirá la categoría correcta automáticamente
+        is_offensive = ai_analysis.get("is_offensive", False) if ai_analysis else False
+        is_inappropriate = ai_analysis.get("is_inappropriate", False) if ai_analysis else False
+        is_joke = ai_analysis.get("is_joke_or_fake", False) if ai_analysis else False
+        
+        # Solo rechazar si es contenido ofensivo, inapropiado o broma
+        if is_offensive or is_inappropriate or is_joke:
             # Delete temp file
             if os.path.exists(temp_path):
                 os.remove(temp_path)
             
-            # Check if strike is required
             requires_strike = ai_analysis.get("requires_strike", False)
-            is_offensive = ai_analysis.get("is_offensive", False)
-            is_inappropriate = ai_analysis.get("is_inappropriate", False)
-            is_joke = ai_analysis.get("is_joke_or_fake", False)
             
             strike_info = None
             
