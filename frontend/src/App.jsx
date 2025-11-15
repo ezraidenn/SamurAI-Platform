@@ -13,6 +13,7 @@ import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ReportFormPage from './pages/ReportFormPage';
+import MeridaReportFormPage from './pages/MeridaReportFormPage';
 import CitizenDashboardPage from './pages/CitizenDashboardPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import UserManagementPage from './pages/UserManagementPage';
@@ -39,6 +40,17 @@ function AppContent() {
               <ProtectedRoute>
                 <MainLayout>
                   <ReportFormPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/reportar-merida"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <MeridaReportFormPage />
                 </MainLayout>
               </ProtectedRoute>
             }

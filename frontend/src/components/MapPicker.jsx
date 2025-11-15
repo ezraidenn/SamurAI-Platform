@@ -3,9 +3,10 @@
  * 
  * Interactive map for selecting report location.
  * Uses Leaflet via react-leaflet.
+ * Includes reverse geocoding on marker drag.
  */
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import L from 'leaflet';
 
 // Fix Leaflet default icon issue with Webpack
@@ -16,18 +17,51 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 });
 
-// Component to handle map clicks
-function LocationMarker({ position, setPosition }) {
+// Component to handle map clicks and draggable marker
+function LocationMarker({ position, setPosition, onDragEnd }) {
+  const markerRef = useRef(null);
+  
   useMapEvents({
     click(e) {
       setPosition({
         lat: e.latlng.lat,
         lng: e.latlng.lng,
       });
+      // Trigger reverse geocoding on click
+      if (onDragEnd) {
+        onDragEnd(e.latlng.lat, e.latlng.lng);
+      }
     },
   });
 
-  return position ? <Marker position={[position.lat, position.lng]} /> : null;
+  const eventHandlers = useMemo(
+    () => ({
+      dragend() {
+        const marker = markerRef.current;
+        if (marker != null) {
+          const latlng = marker.getLatLng();
+          setPosition({
+            lat: latlng.lat,
+            lng: latlng.lng,
+          });
+          // Trigger reverse geocoding on drag end
+          if (onDragEnd) {
+            onDragEnd(latlng.lat, latlng.lng);
+          }
+        }
+      },
+    }),
+    [setPosition, onDragEnd]
+  );
+
+  return position ? (
+    <Marker
+      position={[position.lat, position.lng]}
+      draggable={true}
+      eventHandlers={eventHandlers}
+      ref={markerRef}
+    />
+  ) : null;
 }
 
 export default function MapPicker({ value, onChange, onLocationFound, height = 'h-96' }) {
@@ -151,7 +185,36 @@ export default function MapPicker({ value, onChange, onLocationFound, height = '
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          <LocationMarker position={position} setPosition={handlePositionChange} />
+          <LocationMarker 
+            position={position} 
+            setPosition={handlePositionChange}
+            onDragEnd={async (lat, lng) => {
+              // Trigger reverse geocoding when marker is dragged
+              if (onLocationFound) {
+                try {
+                  const response = await fetch(
+                    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=es`,
+                    {
+                      headers: {
+                        'User-Agent': 'SamurAI-Platform/1.0'
+                      }
+                    }
+                  );
+                  const data = await response.json();
+                  
+                  if (data && data.address) {
+                    onLocationFound({
+                      position: { lat, lng },
+                      address: data.address,
+                      displayName: data.display_name,
+                    });
+                  }
+                } catch (error) {
+                  console.error('Error getting address:', error);
+                }
+              }
+            }}
+          />
         </MapContainer>
       </div>
       

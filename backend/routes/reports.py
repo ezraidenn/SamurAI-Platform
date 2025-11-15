@@ -20,6 +20,7 @@ from backend.services.ai_validator import get_ai_validator
 from backend.services.moderation import get_moderation_service
 from backend.middleware.ban_check import check_user_ban
 from backend.config import AI_VALIDATION_ENABLED
+from backend.utils.location_validator import validate_report_location
 
 
 router = APIRouter(prefix="/reports", tags=["reports"])
@@ -229,13 +230,15 @@ async def create_report(
     current_user: User = Depends(get_current_user)
 ):
     """
-    Create a new civic incident report with AI validation.
+    Create a new civic incident report with AI validation and location validation.
     
     Uses AI to:
     - Validate category selection
     - Suggest improved priority
     - Extract keywords
     - Determine urgency level
+    
+    Validates location to ensure it's in Mérida, Yucatán.
     
     Args:
         report_data: Report data (category, description, coordinates, optional photo_url)
@@ -245,7 +248,25 @@ async def create_report(
     Returns:
         Created report with AI-enhanced metadata
     """
-    # AI Validation with Image Analysis
+    # STEP 1: Validate location (Mérida, Yucatán only)
+    is_valid_location, location_message = validate_report_location({
+        'description': report_data.description,
+        'latitude': report_data.latitude,
+        'longitude': report_data.longitude
+    })
+    
+    if not is_valid_location:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": "invalid_location",
+                "message": "Ubicación no válida",
+                "reason": location_message,
+                "help": "Solo se aceptan reportes de Mérida, Yucatán. Verifica el código postal o la ubicación en el mapa."
+            }
+        )
+    
+    # STEP 2: AI Validation with Image Analysis
     ai_analysis = None
     if AI_VALIDATION_ENABLED:
         try:
