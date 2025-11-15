@@ -41,6 +41,27 @@ def require_admin(current_user: User = Depends(get_current_user)) -> User:
     return current_user
 
 
+def require_supervisor_or_admin(current_user: User = Depends(get_current_user)) -> User:
+    """
+    Dependency to ensure user is a supervisor or admin.
+    
+    Args:
+        current_user: Authenticated user
+        
+    Returns:
+        User if they are supervisor or admin
+        
+    Raises:
+        403: If user is not supervisor or admin
+    """
+    if current_user.role not in ["supervisor", "admin"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Supervisor or Admin access required"
+        )
+    return current_user
+
+
 class StatusUpdate(BaseModel):
     """Schema for updating report status."""
     status: str = Field(..., pattern="^(pendiente|en_proceso|resuelto)$")
@@ -84,7 +105,7 @@ def can_manage_role(manager_role: str, target_role: str) -> bool:
 @router.get("/reports/summary")
 async def get_admin_summary(
     db: Session = Depends(get_db),
-    admin_user: User = Depends(require_admin)
+    admin_user: User = Depends(require_supervisor_or_admin)
 ):
     """
     Get high-level metrics for the admin dashboard.
@@ -156,7 +177,7 @@ async def update_report_status(
     report_id: int,
     status_update: StatusUpdate,
     db: Session = Depends(get_db),
-    admin_user: User = Depends(require_admin)
+    admin_user: User = Depends(require_supervisor_or_admin)
 ):
     """
     Update the status of a report.

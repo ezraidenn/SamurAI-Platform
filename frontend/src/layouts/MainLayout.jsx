@@ -152,16 +152,28 @@ export default function MainLayout({ children }) {
 
                   {/* Supervisor Links */}
                   {user.role === 'supervisor' && (
-                    <Link
-                      to="/supervisor"
-                      className={`px-3 py-2 rounded-lg transition-colors ${
-                        isActive('/supervisor')
-                          ? 'bg-white text-guinda font-semibold'
-                          : 'hover:bg-guinda-light'
-                      }`}
-                    >
-                      Dashboard Supervisor
-                    </Link>
+                    <>
+                      <Link
+                        to="/supervisor"
+                        className={`px-3 py-2 rounded-lg transition-colors ${
+                          isActive('/supervisor')
+                            ? 'bg-white text-guinda font-semibold'
+                            : 'hover:bg-guinda-light'
+                        }`}
+                      >
+                        Dashboard
+                      </Link>
+                      <Link
+                        to="/supervisor/users"
+                        className={`px-3 py-2 rounded-lg transition-colors ${
+                          isActive('/supervisor/users')
+                            ? 'bg-white text-guinda font-semibold'
+                            : 'hover:bg-guinda-light'
+                        }`}
+                      >
+                        Gestión de Usuarios
+                      </Link>
+                    </>
                   )}
 
                   {/* Operator Links */}
@@ -286,12 +298,48 @@ export default function MainLayout({ children }) {
                       </>
                     )}
                     {user.role === 'admin' && (
+                      <>
+                        <Link
+                          to="/admin"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block px-3 py-2 rounded-lg hover:bg-guinda-light transition-colors"
+                        >
+                          Dashboard Admin
+                        </Link>
+                        <Link
+                          to="/admin/users"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block px-3 py-2 rounded-lg hover:bg-guinda-light transition-colors"
+                        >
+                          Gestión de Usuarios
+                        </Link>
+                      </>
+                    )}
+                    {user.role === 'supervisor' && (
+                      <>
+                        <Link
+                          to="/supervisor"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block px-3 py-2 rounded-lg hover:bg-guinda-light transition-colors"
+                        >
+                          Dashboard Supervisor
+                        </Link>
+                        <Link
+                          to="/supervisor/users"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="block px-3 py-2 rounded-lg hover:bg-guinda-light transition-colors"
+                        >
+                          Gestión de Usuarios
+                        </Link>
+                      </>
+                    )}
+                    {user.role === 'operator' && (
                       <Link
-                        to="/admin"
+                        to="/operator"
                         onClick={() => setMobileMenuOpen(false)}
                         className="block px-3 py-2 rounded-lg hover:bg-guinda-light transition-colors"
                       >
-                        Dashboard Admin
+                        Dashboard Operador
                       </Link>
                     )}
                     <button

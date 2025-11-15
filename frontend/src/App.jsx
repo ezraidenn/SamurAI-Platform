@@ -126,6 +126,17 @@ function AppContent() {
             }
           />
 
+          <Route
+            path="/supervisor/users"
+            element={
+              <ProtectedRoute requireMinRole="supervisor">
+                <MainLayout>
+                  <UserManagementPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+
           {/* Operator routes - require operator, supervisor or admin role */}
           <Route
             path="/operator"
