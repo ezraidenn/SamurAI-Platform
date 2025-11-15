@@ -72,11 +72,64 @@ export function AuthProvider({ children }) {
   };
 
   /**
+   * Check if user is supervisor
+   * @returns {boolean}
+   */
+  const isSupervisor = () => {
+    return user?.role === 'supervisor';
+  };
+
+  /**
+   * Check if user is operator
+   * @returns {boolean}
+   */
+  const isOperator = () => {
+    return user?.role === 'operator';
+  };
+
+  /**
    * Check if user is citizen
    * @returns {boolean}
    */
   const isCitizen = () => {
     return user?.role === 'citizen';
+  };
+
+  /**
+   * Check if user is staff (operator, supervisor, or admin)
+   * @returns {boolean}
+   */
+  const isStaff = () => {
+    return ['operator', 'supervisor', 'admin'].includes(user?.role);
+  };
+
+  /**
+   * Get role level for permission checks
+   * @returns {number} Role level (0-3)
+   */
+  const getRoleLevel = () => {
+    const levels = {
+      'citizen': 0,
+      'operator': 1,
+      'supervisor': 2,
+      'admin': 3
+    };
+    return levels[user?.role] || 0;
+  };
+
+  /**
+   * Check if user has minimum role level
+   * @param {string} requiredRole - Minimum required role
+   * @returns {boolean}
+   */
+  const hasMinRole = (requiredRole) => {
+    const levels = {
+      'citizen': 0,
+      'operator': 1,
+      'supervisor': 2,
+      'admin': 3
+    };
+    return getRoleLevel() >= (levels[requiredRole] || 0);
   };
 
   const value = {
@@ -87,7 +140,12 @@ export function AuthProvider({ children }) {
     logout,
     isAuthenticated,
     isAdmin,
+    isSupervisor,
+    isOperator,
     isCitizen,
+    isStaff,
+    getRoleLevel,
+    hasMinRole,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

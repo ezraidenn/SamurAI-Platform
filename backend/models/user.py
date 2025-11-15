@@ -19,7 +19,7 @@ class User(Base):
         email: Unique email address for authentication
         curp: Unique CURP (Clave Única de Registro de Población)
         hashed_password: Bcrypt-hashed password
-        role: User role (citizen or admin)
+        role: User role (citizen, operator, supervisor, or admin)
         created_at: Timestamp of user creation
         updated_at: Timestamp of last update
     """
@@ -30,9 +30,9 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     curp = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
-    role = Column(String, default="citizen", nullable=False)  # "citizen" or "admin"
+    role = Column(String, default="citizen", nullable=False)  # "citizen", "operator", "supervisor", or "admin"
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
-    # Relationship to reports
-    reports = relationship("Report", back_populates="user")
+    # Relationship to reports created by this user
+    reports = relationship("Report", foreign_keys="[Report.user_id]", back_populates="user")

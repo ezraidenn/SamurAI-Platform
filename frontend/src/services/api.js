@@ -7,7 +7,10 @@
 import axios from 'axios';
 
 // Base URL from environment variable or default to localhost
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
+// Log API URL on load (for debugging)
+console.log('🔗 API Base URL:', BASE_URL);
 
 // Create axios instance with base configuration
 const api = axios.create({
@@ -179,11 +182,31 @@ export const getAllUsers = async () => {
 /**
  * Update user role (admin only)
  * @param {number} userId - User ID
- * @param {string} role - New role (citizen or admin)
+ * @param {string} role - New role (citizen, operator, supervisor, or admin)
  * @returns {Promise} Updated user
  */
 export const updateUserRole = async (userId, role) => {
   const response = await api.patch(`/admin/users/${userId}/role`, { role });
+  return response.data;
+};
+
+/**
+ * Get staff users (operators, supervisors, admins)
+ * @returns {Promise} List of staff users
+ */
+export const getStaffUsers = async () => {
+  const response = await api.get('/admin/staff');
+  return response.data;
+};
+
+/**
+ * Assign report to user
+ * @param {number} reportId - Report ID
+ * @param {number} userId - User ID to assign to
+ * @returns {Promise} Updated report
+ */
+export const assignReport = async (reportId, userId) => {
+  const response = await api.patch(`/admin/reports/${reportId}/assign`, { assigned_to: userId });
   return response.data;
 };
 

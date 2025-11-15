@@ -13,6 +13,7 @@ import RegisterPage from './pages/RegisterPage';
 import ReportFormPage from './pages/ReportFormPage';
 import CitizenDashboardPage from './pages/CitizenDashboardPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
+import UserManagementPage from './pages/UserManagementPage';
 
 function App() {
   return (
@@ -52,6 +53,41 @@ function App() {
             path="/admin"
             element={
               <ProtectedRoute requireAdmin={true}>
+                <MainLayout>
+                  <AdminDashboardPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/users"
+            element={
+              <ProtectedRoute requireAdmin={true}>
+                <MainLayout>
+                  <UserManagementPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Supervisor routes - require supervisor or admin role */}
+          <Route
+            path="/supervisor"
+            element={
+              <ProtectedRoute requireMinRole="supervisor">
+                <MainLayout>
+                  <AdminDashboardPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Operator routes - require operator, supervisor or admin role */}
+          <Route
+            path="/operator"
+            element={
+              <ProtectedRoute requireMinRole="operator">
                 <MainLayout>
                   <AdminDashboardPage />
                 </MainLayout>

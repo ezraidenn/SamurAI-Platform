@@ -3,7 +3,6 @@ JWT token handling for authentication.
 
 This module handles JWT token creation, verification, and user authentication.
 """
-import os
 from datetime import datetime, timedelta
 from typing import Optional, Dict
 from jose import JWTError, jwt
@@ -12,12 +11,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from backend.database import get_db
 from backend.models.user import User
-
-
-# JWT Configuration
-SECRET_KEY = os.getenv("SECRET_KEY", "ucu-reporta-secret-key-change-in-production-2024")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))  # 24 hours
+from backend.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 
 # Security scheme for bearer token
 security = HTTPBearer()

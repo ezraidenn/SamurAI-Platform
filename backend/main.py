@@ -8,6 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.database import engine, Base
 from backend.routes import users_router, reports_router, admin_router
+from backend.config import CORS_ORIGINS
 
 
 # Create FastAPI application
@@ -21,13 +22,10 @@ app = FastAPI(
 
 
 # Configure CORS middleware
-# Allow requests from frontend (localhost:3000)
+# Allow requests from frontend (loaded from .env)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ],
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods
     allow_headers=["*"],  # Allow all headers
@@ -45,12 +43,13 @@ async def startup_event():
     """
     Application startup event handler.
     
-    Creates all database tables on application startup.
+    Note: Database tables are now managed by Alembic migrations.
+    Run 'alembic upgrade head' to create/update tables.
     """
-    # Create all tables in the database
-    Base.metadata.create_all(bind=engine)
-    print("✓ Database tables created successfully")
+    # Tables are managed by Alembic - no auto-creation
+    # Base.metadata.create_all(bind=engine)
     print("✓ UCU Reporta API is running")
+    print("ℹ️  Use 'alembic upgrade head' to apply database migrations")
 
 
 @app.get("/")

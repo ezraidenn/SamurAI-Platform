@@ -67,15 +67,55 @@ export default function MainLayout({ children }) {
 
                   {/* Admin Links */}
                   {user.role === 'admin' && (
+                    <>
+                      <Link
+                        to="/admin"
+                        className={`px-3 py-2 rounded-lg transition-colors ${
+                          isActive('/admin')
+                            ? 'bg-white text-guinda font-semibold'
+                            : 'hover:bg-guinda-light'
+                        }`}
+                      >
+                        Dashboard
+                      </Link>
+                      <Link
+                        to="/admin/users"
+                        className={`px-3 py-2 rounded-lg transition-colors ${
+                          isActive('/admin/users')
+                            ? 'bg-white text-guinda font-semibold'
+                            : 'hover:bg-guinda-light'
+                        }`}
+                      >
+                        Usuarios
+                      </Link>
+                    </>
+                  )}
+
+                  {/* Supervisor Links */}
+                  {user.role === 'supervisor' && (
                     <Link
-                      to="/admin"
+                      to="/supervisor"
                       className={`px-3 py-2 rounded-lg transition-colors ${
-                        isActive('/admin')
+                        isActive('/supervisor')
                           ? 'bg-white text-guinda font-semibold'
                           : 'hover:bg-guinda-light'
                       }`}
                     >
-                      Dashboard Admin
+                      Dashboard Supervisor
+                    </Link>
+                  )}
+
+                  {/* Operator Links */}
+                  {user.role === 'operator' && (
+                    <Link
+                      to="/operator"
+                      className={`px-3 py-2 rounded-lg transition-colors ${
+                        isActive('/operator')
+                          ? 'bg-white text-guinda font-semibold'
+                          : 'hover:bg-guinda-light'
+                      }`}
+                    >
+                      Dashboard Operador
                     </Link>
                   )}
 

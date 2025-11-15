@@ -50,9 +50,18 @@ export default function LoginPage() {
       // Guardar auth
       login(response.user, response.access_token);
 
-      // Redirect
-      const destination = response.user.role === 'admin' ? '/admin' : '/panel';
-      console.log('➡️ Redirigiendo a:', destination);
+      // Redirect based on role
+      let destination = '/panel'; // Default for citizens
+      
+      if (response.user.role === 'admin') {
+        destination = '/admin';
+      } else if (response.user.role === 'supervisor') {
+        destination = '/supervisor';
+      } else if (response.user.role === 'operator') {
+        destination = '/operator';
+      }
+      
+      console.log('➡️ Redirigiendo a:', destination, '(Role:', response.user.role, ')');
       navigate(destination, { replace: true });
     } catch (err) {
       console.error('❌ Error de login:', err);

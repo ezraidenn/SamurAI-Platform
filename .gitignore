@@ -31,7 +31,8 @@ database/
 *~
 
 # Environment variables
-.env
+# .env files are included in repo for development
+# DO NOT include sensitive data in production .env
 .env.local
 
 # OS

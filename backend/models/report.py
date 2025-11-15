@@ -30,6 +30,7 @@ class Report(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    assigned_to = Column(Integer, ForeignKey("users.id"), nullable=True)  # Operator/Supervisor assigned
     category = Column(String, nullable=False)  # bache, alumbrado, basura, drenaje, vialidad
     description = Column(Text, nullable=False)
     latitude = Column(Float, nullable=False)
@@ -40,5 +41,6 @@ class Report(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
-    # Relationship to user
-    user = relationship("User", back_populates="reports")
+    # Relationships
+    user = relationship("User", foreign_keys=[user_id], back_populates="reports")
+    assigned_user = relationship("User", foreign_keys=[assigned_to], viewonly=True)
