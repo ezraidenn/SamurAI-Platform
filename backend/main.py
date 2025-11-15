@@ -31,7 +31,9 @@ app = FastAPI(
 # Configure CORS middleware
 # Allow requests from frontend (loaded from .env)
 # Note: When using wildcard (*), credentials must be False
+print(f"🔧 Configurando CORS con origins: {CORS_ORIGINS}")
 if CORS_ORIGINS == ["*"]:
+    print("✅ Usando CORS wildcard (*) - permitiendo todos los orígenes")
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
@@ -41,6 +43,7 @@ if CORS_ORIGINS == ["*"]:
         expose_headers=["*"],
     )
 else:
+    print(f"✅ Usando CORS específico para: {CORS_ORIGINS}")
     app.add_middleware(
         CORSMiddleware,
         allow_origins=CORS_ORIGINS,
