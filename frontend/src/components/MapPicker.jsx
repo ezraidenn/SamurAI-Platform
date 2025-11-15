@@ -5,7 +5,7 @@
  * Uses Leaflet via react-leaflet.
  * Includes reverse geocoding on marker drag.
  */
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Polygon, useMapEvents } from 'react-leaflet';
 import { useState, useRef, useMemo } from 'react';
 import L from 'leaflet';
 
@@ -96,6 +96,14 @@ export default function MapPicker({ value, onChange, onLocationFound, height = '
     east: -89.65,  // Límite este
     west: -89.78   // Límite oeste
   };
+  
+  // Polígono aproximado del municipio de Ucú para visualización
+  const ucuPolygon = [
+    [21.12, -89.78],  // Noroeste
+    [21.12, -89.68],  // Noreste
+    [21.05, -89.68],  // Sureste
+    [21.05, -89.78],  // Suroeste
+  ];
   
   const [position, setPosition] = useState(value || null);
   const [loadingLocation, setLoadingLocation] = useState(false);
@@ -225,6 +233,19 @@ export default function MapPicker({ value, onChange, onLocationFound, height = '
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
+          
+          {/* Polígono visual de los límites de Ucú */}
+          <Polygon
+            positions={ucuPolygon}
+            pathOptions={{
+              color: '#8B1538',
+              fillColor: '#8B1538',
+              fillOpacity: 0.1,
+              weight: 2,
+              dashArray: '5, 10'
+            }}
+          />
+          
           <LocationMarker 
             position={position} 
             setPosition={handlePositionChange}
