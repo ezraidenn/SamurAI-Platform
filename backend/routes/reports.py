@@ -39,14 +39,14 @@ async def validate_photo_with_ai(
     _: None = Depends(check_user_ban)
 ):
     """
-    Validate photo with AI BEFORE creating the report.
+    Validate photo and text with AI BEFORE creating the report.
     
-    This endpoint is called first to check if the photo is valid.
+    This endpoint is called first to check if the photo and text are valid.
     Only if validation passes, the frontend will proceed to create the report.
     
     Returns:
-        - 200: Photo is valid, includes AI analysis
-        - 400: Photo is invalid (joke, fake, doesn't match category)
+        - 200: Content is valid, includes AI analysis
+        - 422: Content is invalid (offensive text, invalid image, etc.)
     """
     if not AI_VALIDATION_ENABLED:
         return {"valid": True, "message": "AI validation disabled"}

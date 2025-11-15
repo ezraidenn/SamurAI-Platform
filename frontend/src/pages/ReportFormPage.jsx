@@ -82,7 +82,7 @@ export default function ReportFormPage() {
     damageCategory: '',
     colonia: '',
     direccion: '',
-    codigoPostal: '',
+    codigoPostal: '97357', // Código postal de Ucú pre-llenado
     referencias: '',
     location: null,
     photo: null,
@@ -269,7 +269,7 @@ export default function ReportFormPage() {
         try {
           const validationResult = await validatePhotoWithAI(
             formData.photo,
-            formData.category,
+            formData.damageCategory || 'bache', // Usar damageCategory del formulario UCU
             descripcionCompleta
           );
           
@@ -287,21 +287,27 @@ export default function ReportFormPage() {
           
           const errorDetail = validationError.response?.data?.detail;
           console.log('🔍 Error detail:', errorDetail);
+          console.log('🔍 Error detail type:', typeof errorDetail);
+          console.log('🔍 Is Array?:', Array.isArray(errorDetail));
           
-          if (errorDetail?.error === 'invalid_image') {
+          // Si es un array (error de FastAPI), tomar el primer elemento
+          const detail = Array.isArray(errorDetail) ? errorDetail[0] : errorDetail;
+          console.log('🔍 Detail procesado:', detail);
+          
+          if (detail?.error === 'invalid_image') {
             setStrikeData({
               type: 'image',
-              message: errorDetail.professional_feedback || errorDetail.rejection_reason,
-              details: errorDetail.ai_analysis?.observed_details,
-              isJoke: errorDetail.ai_analysis?.is_joke_or_fake,
-              isOffensive: errorDetail.ai_analysis?.is_offensive,
-              isInappropriate: errorDetail.ai_analysis?.is_inappropriate,
-              strikeIssued: errorDetail.strike_issued,
-              strikeCount: errorDetail.strike_count,
-              isBanned: errorDetail.is_banned,
-              banUntil: errorDetail.ban_until,
-              banReason: errorDetail.ban_reason,
-              isPermanentBan: errorDetail.is_permanent_ban
+              message: detail.professional_feedback || detail.rejection_reason,
+              details: detail.ai_analysis?.observed_details,
+              isJoke: detail.ai_analysis?.is_joke_or_fake,
+              isOffensive: detail.ai_analysis?.is_offensive,
+              isInappropriate: detail.ai_analysis?.is_inappropriate,
+              strikeIssued: detail.strike_issued,
+              strikeCount: detail.strike_count,
+              isBanned: detail.is_banned,
+              banUntil: detail.ban_until,
+              banReason: detail.ban_reason,
+              isPermanentBan: detail.is_permanent_ban
             });
             setShowStrikeModal(true);
             setLoading(false);
@@ -309,19 +315,19 @@ export default function ReportFormPage() {
           }
           
           // Check if text is offensive
-          if (errorDetail?.error === 'offensive_text') {
+          if (detail?.error === 'offensive_text') {
             setStrikeData({
               type: 'text',
-              message: errorDetail.professional_feedback || errorDetail.rejection_reason,
-              detectedWords: errorDetail.detected_words,
+              message: detail.professional_feedback || detail.rejection_reason,
+              detectedWords: detail.detected_words,
               isOffensive: true,
-              offenseType: errorDetail.offense_type,
-              strikeIssued: errorDetail.strike_issued,
-              strikeCount: errorDetail.strike_count,
-              isBanned: errorDetail.is_banned,
-              banUntil: errorDetail.ban_until,
-              banReason: errorDetail.ban_reason,
-              isPermanentBan: errorDetail.is_permanent_ban
+              offenseType: detail.offense_type,
+              strikeIssued: detail.strike_issued,
+              strikeCount: detail.strike_count,
+              isBanned: detail.is_banned,
+              banUntil: detail.ban_until,
+              banReason: detail.ban_reason,
+              isPermanentBan: detail.is_permanent_ban
             });
             setShowStrikeModal(true);
             setLoading(false);
@@ -329,15 +335,15 @@ export default function ReportFormPage() {
           }
           
           // Check if user is banned
-          if (errorDetail?.error === 'user_banned') {
-            setError(errorDetail.message);
+          if (detail?.error === 'user_banned') {
+            setError(detail.message);
             setImageRejection({
-              message: errorDetail.reason,
+              message: detail.reason,
               isBanned: true,
-              isPermanentBan: errorDetail.is_permanent,
-              banUntil: errorDetail.ban_until,
-              timeRemaining: errorDetail.time_remaining,
-              strikeCount: errorDetail.strike_count
+              isPermanentBan: detail.is_permanent,
+              banUntil: detail.ban_until,
+              timeRemaining: detail.time_remaining,
+              strikeCount: detail.strike_count
             });
             window.scrollTo({ top: 0, behavior: 'smooth' });
             setLoading(false);
