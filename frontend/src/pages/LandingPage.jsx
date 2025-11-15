@@ -104,32 +104,45 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <section className="relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
+        {/* Background Image with Overlay */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="/images/ucu-hero.jpg" 
+            alt="Ucú, Yucatán" 
+            className="w-full h-full object-cover"
+          />
+          {/* Guinda overlay with gradient */}
+          <div className="absolute inset-0 bg-gradient-to-br from-guinda/85 via-guinda-dark/80 to-guinda/90"></div>
+          {/* Additional subtle pattern overlay */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.05),transparent_50%)]"></div>
+        </div>
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
           <div className="text-center">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
             >
-              <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
+              <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 drop-shadow-lg">
                 Tu Municipio,
                 <br />
                 <span className="text-yellow-300">Más Conectado</span>
               </h1>
-              <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto">
+              <p className="text-xl md:text-2xl text-white/95 mb-8 max-w-3xl mx-auto drop-shadow-md">
                 Reporta problemas urbanos y da seguimiento en tiempo real.
                 Ayuda a construir un municipio mejor.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
                   to="/register"
-                  className="bg-white text-guinda px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all transform hover:scale-105 shadow-lg"
+                  className="bg-white text-guinda px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all transform hover:scale-105 shadow-xl"
                 >
                   Comenzar Ahora →
                 </Link>
                 <Link
                   to="/login"
-                  className="bg-white/20 backdrop-blur-sm text-white border-2 border-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white/30 transition-all"
+                  className="bg-white/20 backdrop-blur-sm text-white border-2 border-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white/30 transition-all shadow-lg"
                 >
                   Ver Demo
                 </Link>
@@ -144,11 +157,11 @@ export default function LandingPage() {
               className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto"
             >
               {stats.map((stat, index) => (
-                <div key={index} className="text-center">
-                  <div className="text-3xl md:text-4xl font-bold text-white mb-2">
+                <div key={index} className="text-center backdrop-blur-sm bg-white/5 rounded-xl p-4">
+                  <div className="text-3xl md:text-4xl font-bold text-white mb-2 drop-shadow-md">
                     {stat.number}
                   </div>
-                  <div className="text-white/80 font-medium">{stat.label}</div>
+                  <div className="text-white/90 font-medium drop-shadow">{stat.label}</div>
                 </div>
               ))}
             </motion.div>
@@ -156,9 +169,9 @@ export default function LandingPage() {
         </div>
 
         {/* Decorative elements */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-yellow-300/20 rounded-full blur-3xl"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white/10 rounded-full blur-3xl"></div>
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-[5]">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-yellow-300/10 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white/5 rounded-full blur-3xl"></div>
         </div>
       </section>
 
