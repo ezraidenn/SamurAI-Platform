@@ -82,7 +82,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <span className="text-2xl font-bold text-white">UCU Reporta</span>
+              <span className="text-2xl font-bold text-white">Ucú Reporta</span>
             </div>
             <div className="flex items-center space-x-4">
               <Link
@@ -322,7 +322,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
-              <h3 className="text-2xl font-bold mb-4">UCU Reporta</h3>
+              <h3 className="text-2xl font-bold mb-4">Ucú Reporta</h3>
               <p className="text-gray-400">
                 Plataforma digital para reportar problemas urbanos y mejorar tu municipio.
               </p>
@@ -354,7 +354,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 UCU Reporta. Hecho con ❤️ para los municipios de Yucatán.</p>
+            <p>&copy; 2025 Ucú Reporta. Hecho con ❤️ para los municipios de Yucatán.</p>
           </div>
         </div>
       </footer>

@@ -133,7 +133,7 @@ export default function LoginPage() {
               />
             </motion.div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Bienvenido</h1>
-            <p className="text-gray-600">Inicia sesión en UCU Reporta</p>
+            <p className="text-gray-600">Inicia sesión en Ucú Reporta</p>
           </div>
 
           {/* Session Expired Message */}
@@ -323,7 +323,7 @@ export default function LoginPage() {
             transition={{ delay: 0.3, duration: 0.5 }}
             className="text-center w-full max-w-2xl"
           >
-            <h2 className="text-5xl font-bold mb-6">UCU Reporta</h2>
+            <h2 className="text-5xl font-bold mb-6">Ucú Reporta</h2>
             <p className="text-xl text-white/90 mb-8 mx-auto max-w-md">
               Plataforma digital para reportar problemas urbanos y mejorar tu municipio
             </p>

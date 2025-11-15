@@ -138,7 +138,7 @@ export default function SettingsPage() {
         >
           <h1 className="text-3xl font-bold text-gray-900">⚙️ Configuración</h1>
           <p className="mt-2 text-gray-600">
-            Personaliza tu experiencia en UCU Reporta
+            Personaliza tu experiencia en Ucú Reporta
           </p>
         </motion.div>
 

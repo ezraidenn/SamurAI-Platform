@@ -152,7 +152,7 @@ export default function RegisterPage() {
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-guinda">Crear Cuenta</h2>
-            <p className="mt-2 text-gray-600">Únete a UCU Reporta</p>
+            <p className="mt-2 text-gray-600">Únete a Ucú Reporta</p>
           </div>
 
           {error && (
