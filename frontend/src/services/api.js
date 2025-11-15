@@ -84,6 +84,59 @@ export const getCurrentUser = async () => {
   return response.data;
 };
 
+/**
+ * Update user profile
+ * @param {Object} profileData - Updated profile data (name)
+ * @returns {Promise} Updated user data
+ */
+export const updateProfile = async (profileData) => {
+  const response = await api.patch('/auth/profile', profileData);
+  return response.data;
+};
+
+/**
+ * Change user password
+ * @param {Object} passwordData - Current and new password
+ * @returns {Promise} Success message
+ */
+export const changePassword = async (passwordData) => {
+  const response = await api.patch('/auth/change-password', passwordData);
+  return response.data;
+};
+
+// ============================================================================
+// Name Change Requests API
+// ============================================================================
+
+/**
+ * Create a name change request
+ * @param {Object} requestData - Requested name and reason
+ * @returns {Promise} Created request
+ */
+export const createNameChangeRequest = async (requestData) => {
+  const response = await api.post('/name-change/request', requestData);
+  return response.data;
+};
+
+/**
+ * Get current user's name change requests
+ * @returns {Promise} Array of requests
+ */
+export const getMyNameChangeRequests = async () => {
+  const response = await api.get('/name-change/my-requests');
+  return response.data;
+};
+
+/**
+ * Cancel a name change request
+ * @param {number} requestId - Request ID
+ * @returns {Promise} Success message
+ */
+export const cancelNameChangeRequest = async (requestId) => {
+  const response = await api.delete(`/name-change/${requestId}`);
+  return response.data;
+};
+
 // ============================================================================
 // Reports API
 // ============================================================================
@@ -129,6 +182,31 @@ export const deleteReport = async (reportId) => {
 };
 
 /**
+ * Validate photo with AI before creating report
+ * @param {File} file - Image file
+ * @param {string} category - Report category
+ * @param {string} description - Report description
+ * @returns {Promise} Validation result with AI analysis
+ */
+export const validatePhotoWithAI = async (file, category, description) => {
+  const formData = new FormData();
+  formData.append('photo', file);
+  formData.append('category', category);
+  formData.append('description', description);
+  
+  const response = await api.post('/reports/validate-photo', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+    params: {
+      category,
+      description
+    }
+  });
+  return response.data;
+};
+
+/**
  * Upload photo for a report
  * @param {number} reportId - Report ID
  * @param {File} file - Image file
@@ -156,6 +234,16 @@ export const uploadReportPhoto = async (reportId, file) => {
  */
 export const getAdminSummary = async () => {
   const response = await api.get('/admin/reports/summary');
+  return response.data;
+};
+
+/**
+ * Get user strike history (admin only)
+ * @param {number} userId - User ID
+ * @returns {Promise} User strikes data
+ */
+export const getUserStrikes = async (userId) => {
+  const response = await api.get(`/auth/users/${userId}/strikes`);
   return response.data;
 };
 

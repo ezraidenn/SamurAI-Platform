@@ -5,28 +5,32 @@ Handles user registration, login, and profile endpoints.
 """
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from passlib.context import CryptContext
+import bcrypt
+from typing import List
 from backend.database import get_db
 from backend.models.user import User
-from backend.schemas.user import UserCreate, UserLogin, UserResponse
+from backend.models.strike import Strike
+from backend.schemas.user import UserCreate, UserLogin, UserResponse, UserUpdate, ChangePassword
 from backend.auth.jwt_handler import create_access_token, get_current_user
 from backend.utils.curp_validator import validate_curp
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-# Password hashing context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 
 def hash_password(password: str) -> str:
-    """Hash a plain text password."""
-    return pwd_context.hash(password)
+    """Hash a plain text password using bcrypt."""
+    password_bytes = password.encode('utf-8')
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password_bytes, salt)
+    return hashed.decode('utf-8')
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify a password against its hash."""
-    return pwd_context.verify(plain_password, hashed_password)
+    """Verify a password against its hash using bcrypt."""
+    password_bytes = plain_password.encode('utf-8')
+    hashed_bytes = hashed_password.encode('utf-8')
+    return bcrypt.checkpw(password_bytes, hashed_bytes)
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
@@ -158,3 +162,161 @@ async def get_current_user_profile(current_user: User = Depends(get_current_user
         Current user's profile information
     """
     return current_user
+
+
+@router.get("/users/{user_id}/strikes")
+async def get_user_strikes(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get strike history for a specific user.
+    
+    Only accessible by admin users.
+    
+    Args:
+        user_id: ID of the user to get strikes for
+        db: Database session
+        current_user: Authenticated user (must be admin)
+        
+    Returns:
+        List of strikes with details
+        
+    Raises:
+        403: If user is not admin
+        404: If user not found
+    """
+    # Check if current user is admin
+    if current_user.role != 'admin':
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Solo administradores pueden ver el historial de strikes"
+        )
+    
+    # Check if user exists
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuario no encontrado"
+        )
+    
+    # Get all strikes for this user
+    strikes = db.query(Strike).filter(Strike.user_id == user_id).order_by(Strike.created_at.desc()).all()
+    
+    return {
+        "user_id": user_id,
+        "user_name": user.name,
+        "user_email": user.email,
+        "total_strikes": user.strike_count,
+        "is_banned": user.is_banned,
+        "ban_until": user.ban_until,
+        "ban_reason": user.ban_reason,
+        "strikes": [
+            {
+                "id": strike.id,
+                "reason": strike.reason,
+                "severity": strike.severity,
+                "content_type": strike.content_type,
+                "ai_detection": strike.ai_detection,
+                "is_offensive": strike.is_offensive,
+                "is_inappropriate": strike.is_inappropriate,
+                "created_at": strike.created_at.isoformat()
+            }
+            for strike in strikes
+        ]
+    }
+
+
+@router.patch("/profile", response_model=UserResponse)
+async def update_profile(
+    profile_data: UserUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Update current user's profile information.
+    
+    Allows users to update their email address only.
+    Name changes must be requested through an administrator.
+    
+    Args:
+        profile_data: Updated profile data (email only)
+        current_user: Authenticated user from token
+        db: Database session
+        
+    Returns:
+        Updated user profile
+        
+    Raises:
+        400: If email is already in use by another user
+    """
+    # Check if email is being changed and if it's already in use
+    if profile_data.email != current_user.email:
+        existing_user = db.query(User).filter(
+            User.email == profile_data.email,
+            User.id != current_user.id
+        ).first()
+        
+        if existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already in use by another user"
+            )
+    
+    # Update email only
+    current_user.email = profile_data.email
+    
+    db.commit()
+    db.refresh(current_user)
+    
+    return current_user
+
+
+@router.patch("/change-password")
+async def change_password(
+    password_data: ChangePassword,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Change current user's password.
+    
+    Verifies current password before allowing change.
+    
+    Args:
+        password_data: Current and new password
+        current_user: Authenticated user from token
+        db: Database session
+        
+    Returns:
+        Success message
+        
+    Raises:
+        401: If current password is incorrect
+        400: If new password is same as current
+    """
+    # Verify current password
+    if not verify_password(password_data.current_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Current password is incorrect"
+        )
+    
+    # Check if new password is different
+    if verify_password(password_data.new_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be different from current password"
+        )
+    
+    # Update password
+    current_user.hashed_password = hash_password(password_data.new_password)
+    
+    db.commit()
+    
+    return {
+        "message": "Password changed successfully",
+        "success": True
+    }

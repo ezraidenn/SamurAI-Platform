@@ -38,6 +38,22 @@ class Report(Base):
     photo_url = Column(String, nullable=True)
     priority = Column(Integer, default=1, nullable=False)  # 1 to 5
     status = Column(String, default="pendiente", nullable=False)  # pendiente, en_proceso, resuelto
+    
+    # AI Analysis fields
+    ai_validated = Column(Integer, default=0, nullable=False)  # 0=no, 1=yes (SQLite doesn't have boolean)
+    ai_confidence = Column(Float, nullable=True)  # 0.0 to 1.0
+    ai_suggested_category = Column(String, nullable=True)
+    ai_urgency_level = Column(String, nullable=True)  # low, medium, high, critical
+    ai_keywords = Column(Text, nullable=True)  # JSON string of keywords
+    ai_reasoning = Column(Text, nullable=True)
+    
+    # AI Image Analysis fields
+    ai_image_valid = Column(Integer, default=1, nullable=True)  # 0=invalid, 1=valid
+    ai_severity_score = Column(Integer, nullable=True)  # 1-10 scale
+    ai_observed_details = Column(Text, nullable=True)  # What AI saw in the image
+    ai_quantity_assessment = Column(String, nullable=True)  # mucho/moderado/poco
+    ai_rejection_reason = Column(Text, nullable=True)  # Why image was rejected if invalid
+    
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     

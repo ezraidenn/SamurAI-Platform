@@ -3,7 +3,7 @@ User model for UCU Reporta.
 
 Defines the User table structure with authentication and role information.
 """
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, Text, DateTime
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from backend.database import Base
@@ -34,5 +34,13 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
-    # Relationship to reports created by this user
-    reports = relationship("Report", foreign_keys="[Report.user_id]", back_populates="user")
+    # Moderation fields
+    strike_count = Column(Integer, default=0, nullable=False)  # Total strikes
+    is_banned = Column(Integer, default=0, nullable=False)  # 0=no, 1=yes
+    ban_until = Column(DateTime(timezone=True), nullable=True)  # When ban expires
+    ban_reason = Column(Text, nullable=True)  # Why user was banned
+    last_strike_at = Column(DateTime(timezone=True), nullable=True)  # Last strike timestamp
+    
+    # Relationships
+    reports = relationship("Report", foreign_keys="Report.user_id", back_populates="user")
+    strikes = relationship("Strike", back_populates="user", cascade="all, delete-orphan")

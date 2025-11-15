@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import L from 'leaflet';
-import { getReports, getAdminSummary, updateReportStatus, getPhotoUrl } from '../services/api';
+import { getReports, getAdminSummary, updateReportStatus, getPhotoUrl, getUserStrikes } from '../services/api';
 
 // Marker colors by status
 const getMarkerIcon = (status) => {
@@ -67,6 +67,15 @@ export default function AdminDashboardPage() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [statusUpdate, setStatusUpdate] = useState({ status: '', comment: '' });
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [userStrikes, setUserStrikes] = useState(null);
+  const [loadingStrikes, setLoadingStrikes] = useState(false);
+  
+  // Map filters
+  const [mapFilters, setMapFilters] = useState({
+    pendiente: true,
+    en_proceso: true,
+    resuelto: true
+  });
 
   useEffect(() => {
     fetchData();
@@ -89,6 +98,37 @@ export default function AdminDashboardPage() {
       setLoading(false);
     }
   };
+
+  const fetchUserStrikes = async (userId) => {
+    setLoadingStrikes(true);
+    try {
+      const data = await getUserStrikes(userId);
+      setUserStrikes(data);
+    } catch (err) {
+      console.error('Error fetching user strikes:', err);
+      setUserStrikes(null);
+    } finally {
+      setLoadingStrikes(false);
+    }
+  };
+
+  const handleReportClick = async (report) => {
+    setSelectedReport(report);
+    setShowDetailsModal(true);
+    // Load user strikes when opening details
+    if (report.user_id) {
+      await fetchUserStrikes(report.user_id);
+    }
+  };
+
+  const toggleMapFilter = (status) => {
+    setMapFilters(prev => ({
+      ...prev,
+      [status]: !prev[status]
+    }));
+  };
+
+  const filteredReports = reports.filter(report => mapFilters[report.status]);
 
   const handleStatusChange = async () => {
     if (!selectedReport || !statusUpdate.status) return;
@@ -120,9 +160,8 @@ export default function AdminDashboardPage() {
     setShowStatusModal(true);
   };
 
-  const openDetailsModal = (report) => {
-    setSelectedReport(report);
-    setShowDetailsModal(true);
+  const openDetailsModal = async (report) => {
+    await handleReportClick(report);
   };
 
   const formatDate = (dateString) => {
@@ -213,11 +252,48 @@ export default function AdminDashboardPage() {
               transition={{ delay: 0.5 }}
               className="bg-white rounded-2xl shadow-md p-6"
             >
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                Mapa de Reportes ({reports.length})
-              </h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold text-gray-800">
+                  Mapa de Reportes ({filteredReports.length}/{reports.length})
+                </h2>
+                
+                {/* Map Filters */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => toggleMapFilter('pendiente')}
+                    className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
+                      mapFilters.pendiente
+                        ? 'bg-yellow-500 text-white shadow-md'
+                        : 'bg-gray-200 text-gray-500'
+                    }`}
+                  >
+                    🟡 Pendiente
+                  </button>
+                  <button
+                    onClick={() => toggleMapFilter('en_proceso')}
+                    className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
+                      mapFilters.en_proceso
+                        ? 'bg-blue-500 text-white shadow-md'
+                        : 'bg-gray-200 text-gray-500'
+                    }`}
+                  >
+                    🔵 En Proceso
+                  </button>
+                  <button
+                    onClick={() => toggleMapFilter('resuelto')}
+                    className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
+                      mapFilters.resuelto
+                        ? 'bg-green-500 text-white shadow-md'
+                        : 'bg-gray-200 text-gray-500'
+                    }`}
+                  >
+                    🟢 Resuelto
+                  </button>
+                </div>
+              </div>
+              
               <div className="h-96 rounded-lg overflow-hidden border-2 border-gray-300 relative z-0">
-                {reports.length > 0 ? (
+                {filteredReports.length > 0 ? (
                   <MapContainer
                     center={mapCenter}
                     zoom={12}
@@ -229,7 +305,7 @@ export default function AdminDashboardPage() {
                       attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                       url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     />
-                    {reports.map((report) => (
+                    {filteredReports.map((report) => (
                       <Marker
                         key={report.id}
                         position={[report.latitude, report.longitude]}
@@ -349,10 +425,20 @@ export default function AdminDashboardPage() {
                       <tr key={report.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 text-sm text-gray-900">#{report.id}</td>
                         <td className="px-6 py-4 text-sm">
-                          <span className="flex items-center">
-                            <span className="text-xl mr-2">{categoryIcons[report.category]}</span>
-                            <span className="capitalize">{report.category}</span>
-                          </span>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-xl">{categoryIcons[report.category]}</span>
+                            <div className="flex flex-col">
+                              <span className="capitalize">{report.category}</span>
+                              {report.ai_validated === 1 && (
+                                <span className="flex items-center text-xs text-purple-600 font-medium">
+                                  <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                  </svg>
+                                  IA {report.ai_confidence ? `${(report.ai_confidence * 100).toFixed(0)}%` : ''}
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
                           {report.description}
@@ -471,6 +557,173 @@ export default function AdminDashboardPage() {
                       </p>
                     </div>
 
+                    {/* AI Analysis Section */}
+                    {selectedReport.ai_validated === 1 && (
+                      <div className="bg-gradient-to-br from-purple-50 to-blue-50 p-6 rounded-xl border-2 border-purple-200">
+                        <div className="flex items-center mb-4">
+                          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center mr-3">
+                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                            </svg>
+                          </div>
+                          <div>
+                            <h4 className="text-lg font-bold text-gray-900">Análisis de IA</h4>
+                            <p className="text-sm text-gray-600">Validación automática con GPT-4o-mini</p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          {/* Confidence Score */}
+                          <div className="bg-white p-3 rounded-lg">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-semibold text-gray-700">Nivel de Confianza</span>
+                              <span className="text-lg font-bold text-purple-600">
+                                {selectedReport.ai_confidence ? `${(selectedReport.ai_confidence * 100).toFixed(0)}%` : 'N/A'}
+                              </span>
+                            </div>
+                            {selectedReport.ai_confidence && (
+                              <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div 
+                                  className={`h-2 rounded-full ${
+                                    selectedReport.ai_confidence >= 0.8 ? 'bg-green-500' :
+                                    selectedReport.ai_confidence >= 0.6 ? 'bg-yellow-500' :
+                                    'bg-orange-500'
+                                  }`}
+                                  style={{ width: `${selectedReport.ai_confidence * 100}%` }}
+                                ></div>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Urgency Level */}
+                          {selectedReport.ai_urgency_level && (
+                            <div className="bg-white p-3 rounded-lg">
+                              <span className="text-sm font-semibold text-gray-700 block mb-2">Nivel de Urgencia</span>
+                              <span className={`inline-block px-3 py-1 rounded-full text-sm font-bold ${
+                                selectedReport.ai_urgency_level === 'critical' ? 'bg-red-100 text-red-800' :
+                                selectedReport.ai_urgency_level === 'high' ? 'bg-orange-100 text-orange-800' :
+                                selectedReport.ai_urgency_level === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-green-100 text-green-800'
+                              }`}>
+                                {selectedReport.ai_urgency_level.toUpperCase()}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Suggested Category */}
+                          {selectedReport.ai_suggested_category && (
+                            <div className="bg-white p-3 rounded-lg">
+                              <span className="text-sm font-semibold text-gray-700 block mb-2">Categoría Sugerida por IA</span>
+                              <div className="flex items-center space-x-2">
+                                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium capitalize">
+                                  {selectedReport.ai_suggested_category}
+                                </span>
+                                {selectedReport.ai_suggested_category !== selectedReport.category && (
+                                  <span className="text-xs text-orange-600 font-medium">
+                                    ⚠️ Difiere de la seleccionada ({selectedReport.category})
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Keywords */}
+                          {selectedReport.ai_keywords && (
+                            <div className="bg-white p-3 rounded-lg">
+                              <span className="text-sm font-semibold text-gray-700 block mb-2">Palabras Clave Detectadas</span>
+                              <div className="flex flex-wrap gap-2">
+                                {JSON.parse(selectedReport.ai_keywords).map((keyword, idx) => (
+                                  <span key={idx} className="px-2 py-1 bg-purple-100 text-purple-700 rounded-md text-xs font-medium">
+                                    {keyword}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Severity Score */}
+                          {selectedReport.ai_severity_score && (
+                            <div className="bg-white p-3 rounded-lg">
+                              <span className="text-sm font-semibold text-gray-700 block mb-2">Severidad del Problema</span>
+                              <div className="flex items-center space-x-3">
+                                <div className="flex-1">
+                                  <div className="flex justify-between text-xs text-gray-600 mb-1">
+                                    <span>Leve</span>
+                                    <span className="font-bold text-lg">{selectedReport.ai_severity_score}/10</span>
+                                    <span>Crítico</span>
+                                  </div>
+                                  <div className="w-full bg-gray-200 rounded-full h-3">
+                                    <div 
+                                      className={`h-3 rounded-full ${
+                                        selectedReport.ai_severity_score >= 8 ? 'bg-red-500' :
+                                        selectedReport.ai_severity_score >= 6 ? 'bg-orange-500' :
+                                        selectedReport.ai_severity_score >= 4 ? 'bg-yellow-500' :
+                                        'bg-green-500'
+                                      }`}
+                                      style={{ width: `${selectedReport.ai_severity_score * 10}%` }}
+                                    ></div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Quantity Assessment */}
+                          {selectedReport.ai_quantity_assessment && (
+                            <div className="bg-white p-3 rounded-lg">
+                              <span className="text-sm font-semibold text-gray-700 block mb-2">Cantidad Detectada</span>
+                              <span className={`inline-block px-3 py-1 rounded-full text-sm font-bold ${
+                                selectedReport.ai_quantity_assessment === 'mucho' ? 'bg-red-100 text-red-800' :
+                                selectedReport.ai_quantity_assessment === 'moderado' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-green-100 text-green-800'
+                              }`}>
+                                {selectedReport.ai_quantity_assessment.toUpperCase()}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Observed Details */}
+                          {selectedReport.ai_observed_details && (
+                            <div className="bg-white p-3 rounded-lg">
+                              <span className="text-sm font-semibold text-gray-700 block mb-2">
+                                🔍 Lo que Observó la IA en la Imagen
+                              </span>
+                              <p className="text-sm text-gray-700 leading-relaxed">
+                                {selectedReport.ai_observed_details}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* AI Reasoning */}
+                          {selectedReport.ai_reasoning && (
+                            <div className="bg-white p-3 rounded-lg">
+                              <span className="text-sm font-semibold text-gray-700 block mb-2">Razonamiento de la IA</span>
+                              <p className="text-sm text-gray-600 italic">
+                                "{selectedReport.ai_reasoning}"
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Rejection Reason (if invalid) */}
+                          {selectedReport.ai_rejection_reason && (
+                            <div className="bg-red-50 border-2 border-red-200 p-3 rounded-lg">
+                              <div className="flex items-start space-x-2">
+                                <svg className="w-5 h-5 text-red-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                </svg>
+                                <div>
+                                  <span className="text-sm font-bold text-red-800 block mb-1">⚠️ Imagen Rechazada</span>
+                                  <p className="text-sm text-red-700">
+                                    {selectedReport.ai_rejection_reason}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Location */}
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Ubicación</label>
@@ -554,6 +807,104 @@ export default function AdminDashboardPage() {
                         </div>
                       </div>
                     </div>
+
+                    {/* User Strikes History */}
+                    {loadingStrikes ? (
+                      <div className="bg-gray-50 p-6 rounded-lg">
+                        <p className="text-sm text-gray-500 text-center">Cargando historial de strikes...</p>
+                      </div>
+                    ) : userStrikes && userStrikes.strikes && userStrikes.strikes.length > 0 ? (
+                      <div className="bg-gradient-to-br from-red-50 to-orange-50 p-6 rounded-lg border-2 border-red-200">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center">
+                            <svg className="w-6 h-6 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                            <h4 className="text-lg font-bold text-red-900">Historial de Strikes</h4>
+                          </div>
+                          <span className="px-3 py-1 bg-red-600 text-white rounded-full text-sm font-bold">
+                            {userStrikes.total_strikes}/5
+                          </span>
+                        </div>
+
+                        {userStrikes.is_banned === 1 && (
+                          <div className="bg-red-100 border-l-4 border-red-600 p-3 mb-4 rounded">
+                            <p className="text-sm font-bold text-red-900">
+                              🔒 Usuario Suspendido
+                            </p>
+                            <p className="text-xs text-red-700 mt-1">
+                              {userStrikes.ban_reason}
+                            </p>
+                          </div>
+                        )}
+
+                        <div className="space-y-3 max-h-64 overflow-y-auto">
+                          {userStrikes.strikes.map((strike, index) => (
+                            <div key={strike.id} className="bg-white p-4 rounded-lg border border-red-200">
+                              <div className="flex items-start justify-between mb-2">
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-lg font-bold text-red-600">#{userStrikes.strikes.length - index}</span>
+                                  <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                                    strike.severity === 'critical' ? 'bg-red-600 text-white' :
+                                    strike.severity === 'high' ? 'bg-orange-500 text-white' :
+                                    strike.severity === 'medium' ? 'bg-yellow-500 text-white' :
+                                    'bg-gray-400 text-white'
+                                  }`}>
+                                    {strike.severity.toUpperCase()}
+                                  </span>
+                                  <span className="text-xs text-gray-500">
+                                    {strike.content_type === 'image' ? '📷 Imagen' : '📝 Texto'}
+                                  </span>
+                                </div>
+                                <span className="text-xs text-gray-500">
+                                  {new Date(strike.created_at).toLocaleDateString('es-MX', {
+                                    day: '2-digit',
+                                    month: 'short',
+                                    year: 'numeric'
+                                  })}
+                                </span>
+                              </div>
+                              
+                              <p className="text-sm text-gray-800 font-medium mb-2">
+                                {strike.reason}
+                              </p>
+                              
+                              {strike.ai_detection && (
+                                <p className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
+                                  🤖 {strike.ai_detection}
+                                </p>
+                              )}
+                              
+                              {(strike.is_offensive || strike.is_inappropriate) && (
+                                <div className="flex gap-2 mt-2">
+                                  {strike.is_offensive && (
+                                    <span className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded">
+                                      🚨 Ofensivo
+                                    </span>
+                                  )}
+                                  {strike.is_inappropriate && (
+                                    <span className="text-xs px-2 py-1 bg-orange-100 text-orange-700 rounded">
+                                      ⚠️ Inapropiado
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : userStrikes && userStrikes.total_strikes === 0 ? (
+                      <div className="bg-green-50 p-6 rounded-lg border-2 border-green-200">
+                        <div className="flex items-center">
+                          <svg className="w-6 h-6 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                          <p className="text-sm font-semibold text-green-800">
+                            ✅ Usuario sin infracciones
+                          </p>
+                        </div>
+                      </div>
+                    ) : null}
 
                     {/* Photo */}
                     <div>

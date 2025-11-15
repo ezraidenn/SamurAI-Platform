@@ -27,6 +27,11 @@ CORS_ORIGINS = [origin.strip() for origin in CORS_ORIGINS_STR.split(",")]
 # Environment
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
+# OpenAI Configuration
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+AI_VALIDATION_ENABLED = os.getenv("AI_VALIDATION_ENABLED", "true").lower() == "true"
+
 # Print configuration on load (for debugging)
 if ENVIRONMENT == "development":
     print("=" * 60)
@@ -37,4 +42,6 @@ if ENVIRONMENT == "development":
     print(f"Database: {DATABASE_URL}")
     print(f"CORS Origins: {CORS_ORIGINS}")
     print(f"Environment: {ENVIRONMENT}")
+    print(f"AI Validation: {'✅ Enabled' if AI_VALIDATION_ENABLED else '❌ Disabled'}")
+    print(f"OpenAI Model: {OPENAI_MODEL}")
     print("=" * 60)

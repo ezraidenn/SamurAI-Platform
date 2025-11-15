@@ -2,9 +2,11 @@
  * Main App Component
  * 
  * Sets up routing with authentication and role-based access control.
+ * Incluye timeout de sesión por inactividad (30 minutos).
  */
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { useSessionTimeout } from './hooks/useSessionTimeout';
 import MainLayout from './layouts/MainLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import LandingPage from './pages/LandingPage';
@@ -14,12 +16,15 @@ import ReportFormPage from './pages/ReportFormPage';
 import CitizenDashboardPage from './pages/CitizenDashboardPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import UserManagementPage from './pages/UserManagementPage';
+import ProfilePage from './pages/ProfilePage';
 
-function App() {
+// Componente interno que usa el hook de timeout
+function AppContent() {
+  // Activar timeout de sesión
+  useSessionTimeout();
+
   return (
-    <Router>
-      <AuthProvider>
-        <Routes>
+    <Routes>
           {/* Public routes without layout */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
@@ -43,6 +48,17 @@ function App() {
               <ProtectedRoute>
                 <MainLayout>
                   <CitizenDashboardPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/perfil"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <ProfilePage />
                 </MainLayout>
               </ProtectedRoute>
             }
@@ -97,7 +113,15 @@ function App() {
 
           {/* Catch all - redirect to login */}
           <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
+    </Routes>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AuthProvider>
+        <AppContent />
       </AuthProvider>
     </Router>
   );

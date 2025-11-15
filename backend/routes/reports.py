@@ -5,6 +5,7 @@ Handles report creation, listing, photo uploads, and deletion.
 """
 import os
 import uuid
+import json
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Query
 from sqlalchemy.orm import Session
@@ -14,6 +15,10 @@ from backend.models.report import Report
 from backend.schemas.report import ReportCreate, ReportResponse
 from backend.auth.jwt_handler import get_current_user
 from backend.utils.priority_engine import calculate_priority
+from backend.services.ai_validator import get_ai_validator
+from backend.services.moderation import get_moderation_service
+from backend.middleware.ban_check import check_user_ban
+from backend.config import AI_VALIDATION_ENABLED
 
 
 router = APIRouter(prefix="/reports", tags=["reports"])
@@ -23,6 +28,195 @@ ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
 UPLOAD_DIR = "backend/static/uploads"
 
 
+@router.post("/validate-photo")
+async def validate_photo_with_ai(
+    photo: UploadFile = File(...),
+    category: str = Query(...),
+    description: str = Query(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    _: None = Depends(check_user_ban)
+):
+    """
+    Validate photo with AI BEFORE creating the report.
+    
+    This endpoint is called first to check if the photo is valid.
+    Only if validation passes, the frontend will proceed to create the report.
+    
+    Returns:
+        - 200: Photo is valid, includes AI analysis
+        - 400: Photo is invalid (joke, fake, doesn't match category)
+    """
+    if not AI_VALIDATION_ENABLED:
+        return {"valid": True, "message": "AI validation disabled"}
+    
+    try:
+        # STEP 1: Check text for offensive content FIRST
+        validator = get_ai_validator()
+        text_check = validator.check_offensive_text(description)
+        
+        if text_check.get("is_offensive") or text_check.get("is_inappropriate"):
+            # Issue strike for offensive text
+            moderation = get_moderation_service(db)
+            
+            severity = text_check.get("severity", "high")
+            
+            strike_info = moderation.issue_strike(
+                user_id=current_user.id,
+                reason=text_check.get("rejection_reason", "Lenguaje ofensivo detectado"),
+                severity=severity,
+                content_type="description",
+                ai_detection=f"Palabras detectadas: {', '.join(text_check.get('detected_words', []))}",
+                is_offensive=text_check.get("is_offensive", False),
+                is_inappropriate=text_check.get("is_inappropriate", False)
+            )
+            
+            print(f"⚠️  Strike issued for offensive text to user {current_user.id}: {strike_info}")
+            
+            # Return rejection
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail={
+                    "error": "offensive_text",
+                    "message": "Texto rechazado por contenido ofensivo",
+                    "rejection_reason": text_check.get("rejection_reason"),
+                    "professional_feedback": text_check.get("professional_feedback"),
+                    "detected_words": text_check.get("detected_words", []),
+                    "offense_type": text_check.get("offense_type"),
+                    "strike_issued": True,
+                    "strike_count": strike_info["strike_count"],
+                    "is_banned": strike_info["is_banned"],
+                    "ban_until": strike_info["ban_until"].isoformat() if strike_info["ban_until"] else None,
+                    "ban_reason": strike_info["ban_reason"],
+                    "is_permanent_ban": strike_info["is_permanent"]
+                }
+            )
+        
+        # STEP 2: If text is clean, proceed with photo validation
+        # Save photo temporarily
+        file_ext = os.path.splitext(photo.filename)[1].lower()
+        if file_ext not in ALLOWED_EXTENSIONS:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Formato de imagen no permitido"
+            )
+        
+        # Create temp filename
+        temp_filename = f"temp_{uuid.uuid4()}{file_ext}"
+        temp_path = os.path.join(UPLOAD_DIR, temp_filename)
+        
+        # Ensure upload directory exists
+        os.makedirs(UPLOAD_DIR, exist_ok=True)
+        
+        # Save file
+        with open(temp_path, "wb") as buffer:
+            content = await photo.read()
+            buffer.write(content)
+        
+        # Validate with AI
+        validator = get_ai_validator()
+        ai_analysis = validator.analyze_report_with_image(
+            category=category,
+            description=description,
+            image_path=temp_path
+        )
+        
+        # Check if image is valid
+        if ai_analysis and not ai_analysis.get("is_valid", True):
+            # Delete temp file
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+            
+            # Check if strike is required
+            requires_strike = ai_analysis.get("requires_strike", False)
+            is_offensive = ai_analysis.get("is_offensive", False)
+            is_inappropriate = ai_analysis.get("is_inappropriate", False)
+            is_joke = ai_analysis.get("is_joke_or_fake", False)
+            
+            strike_info = None
+            
+            # Issue strike if content is offensive, inappropriate, or repeated joke
+            if requires_strike or is_offensive or is_inappropriate:
+                moderation = get_moderation_service(db)
+                
+                # Determine severity
+                strike_severity = ai_analysis.get("strike_severity", "medium")
+                if is_offensive:
+                    strike_severity = "high"
+                elif is_inappropriate:
+                    strike_severity = "medium"
+                elif is_joke:
+                    strike_severity = "low"
+                
+                # Issue strike
+                try:
+                    strike_info = moderation.issue_strike(
+                        user_id=current_user.id,
+                        reason=ai_analysis.get("rejection_reason", "Contenido inapropiado detectado"),
+                        severity=strike_severity,
+                        content_type="photo",
+                        ai_detection=ai_analysis.get("observed_details", ""),
+                        is_offensive=is_offensive,
+                        is_joke=is_joke,
+                        is_inappropriate=is_inappropriate
+                    )
+                    print(f"⚠️  Strike issued to user {current_user.id}: {strike_info}")
+                except Exception as e:
+                    print(f"Error issuing strike: {e}")
+            
+            # Return rejection with strike info
+            detail = {
+                "error": "invalid_image",
+                "message": "Imagen rechazada por validación de IA",
+                "rejection_reason": ai_analysis.get("rejection_reason", "La imagen no es válida"),
+                "professional_feedback": ai_analysis.get("professional_feedback", 
+                    "Por favor, suba una fotografía que muestre claramente el problema reportado."),
+                "ai_analysis": {
+                    "image_valid": ai_analysis.get("image_valid", False),
+                    "is_joke_or_fake": is_joke,
+                    "is_offensive": is_offensive,
+                    "is_inappropriate": is_inappropriate,
+                    "observed_details": ai_analysis.get("observed_details", ""),
+                    "matches_category": ai_analysis.get("image_matches_category", False)
+                }
+            }
+            
+            # Add strike info if issued
+            if strike_info:
+                detail["strike_issued"] = True
+                detail["strike_count"] = strike_info["strike_count"]
+                detail["is_banned"] = strike_info["is_banned"]
+                detail["ban_until"] = strike_info["ban_until"].isoformat() if strike_info["ban_until"] else None
+                detail["ban_reason"] = strike_info["ban_reason"]
+                detail["is_permanent_ban"] = strike_info["is_permanent"]
+            
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=detail
+            )
+        
+        # Photo is valid - keep temp file and return path
+        return {
+            "valid": True,
+            "temp_filename": temp_filename,
+            "ai_analysis": {
+                "confidence": ai_analysis.get("confidence"),
+                "suggested_category": ai_analysis.get("suggested_category"),
+                "severity_score": ai_analysis.get("severity_score"),
+                "urgency_level": ai_analysis.get("urgency_level"),
+                "observed_details": ai_analysis.get("observed_details")
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error validating photo: {e}")
+        # If validation fails, allow the photo (fallback)
+        return {"valid": True, "message": "Validation failed, proceeding without AI check"}
+
+
+
 @router.post("/", response_model=ReportResponse, status_code=status.HTTP_201_CREATED)
 async def create_report(
     report_data: ReportCreate,
@@ -30,10 +224,13 @@ async def create_report(
     current_user: User = Depends(get_current_user)
 ):
     """
-    Create a new civic incident report.
+    Create a new civic incident report with AI validation.
     
-    Calculates priority automatically based on category and description.
-    Sets status to 'pendiente' by default.
+    Uses AI to:
+    - Validate category selection
+    - Suggest improved priority
+    - Extract keywords
+    - Determine urgency level
     
     Args:
         report_data: Report data (category, description, coordinates, optional photo_url)
@@ -41,17 +238,72 @@ async def create_report(
         current_user: Authenticated user creating the report
         
     Returns:
-        Created report with auto-calculated priority
+        Created report with AI-enhanced metadata
     """
-    # Calculate priority based on category and description
-    priority = calculate_priority(
-        category=report_data.category,
-        description=report_data.description,
-        latitude=report_data.latitude,
-        longitude=report_data.longitude
-    )
+    # AI Validation with Image Analysis
+    ai_analysis = None
+    if AI_VALIDATION_ENABLED:
+        try:
+            validator = get_ai_validator()
+            
+            # Use complete analysis if photo is provided
+            if report_data.photo_url:
+                # Convert photo_url to full path for analysis
+                image_path = f"backend/static{report_data.photo_url}" if not report_data.photo_url.startswith('http') else report_data.photo_url
+                ai_analysis = validator.analyze_report_with_image(
+                    category=report_data.category,
+                    description=report_data.description,
+                    image_path=image_path
+                )
+                
+                # REJECT report if image is invalid
+                if ai_analysis and not ai_analysis.get("is_valid", True):
+                    rejection_reason = ai_analysis.get("rejection_reason", "La imagen no es válida")
+                    professional_feedback = ai_analysis.get("professional_feedback", 
+                        "Por favor, suba una fotografía que muestre claramente el problema reportado.")
+                    
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail={
+                            "error": "invalid_image",
+                            "message": "Imagen rechazada por validación de IA",
+                            "rejection_reason": rejection_reason,
+                            "professional_feedback": professional_feedback,
+                            "ai_analysis": {
+                                "image_valid": ai_analysis.get("image_valid", False),
+                                "is_joke_or_fake": ai_analysis.get("is_joke_or_fake", False),
+                                "observed_details": ai_analysis.get("observed_details", "")
+                            }
+                        }
+                    )
+            else:
+                # Text-only analysis
+                ai_analysis = validator.analyze_report(
+                    category=report_data.category,
+                    description=report_data.description,
+                    has_photo=False
+                )
+            
+            print(f"🤖 AI Analysis: {ai_analysis}")
+        except HTTPException:
+            # Re-raise HTTP exceptions (image rejection)
+            raise
+        except Exception as e:
+            print(f"⚠️  AI validation failed: {e}")
+            ai_analysis = None
     
-    # Create new report
+    # Calculate priority (use AI suggestion if available and confident)
+    if ai_analysis and ai_analysis.get("confidence", 0) > 0.7:
+        priority = ai_analysis["suggested_priority"]
+    else:
+        priority = calculate_priority(
+            category=report_data.category,
+            description=report_data.description,
+            latitude=report_data.latitude,
+            longitude=report_data.longitude
+        )
+    
+    # Create new report with AI metadata
     new_report = Report(
         user_id=current_user.id,
         category=report_data.category,
@@ -60,7 +312,20 @@ async def create_report(
         longitude=report_data.longitude,
         photo_url=report_data.photo_url,
         priority=priority,
-        status="pendiente"
+        status="pendiente",
+        # AI text analysis fields
+        ai_validated=1 if ai_analysis else 0,
+        ai_confidence=ai_analysis.get("confidence") if ai_analysis else None,
+        ai_suggested_category=ai_analysis.get("suggested_category") if ai_analysis else None,
+        ai_urgency_level=ai_analysis.get("urgency_level") if ai_analysis else None,
+        ai_keywords=json.dumps(ai_analysis.get("keywords", []), ensure_ascii=False) if ai_analysis else None,
+        ai_reasoning=ai_analysis.get("reasoning") if ai_analysis else None,
+        # AI image analysis fields
+        ai_image_valid=1 if ai_analysis and ai_analysis.get("image_valid", True) else 0,
+        ai_severity_score=ai_analysis.get("severity_score") if ai_analysis else None,
+        ai_observed_details=ai_analysis.get("observed_details") if ai_analysis else None,
+        ai_quantity_assessment=ai_analysis.get("quantity_assessment") if ai_analysis else None,
+        ai_rejection_reason=ai_analysis.get("rejection_reason") if ai_analysis else None
     )
     
     db.add(new_report)

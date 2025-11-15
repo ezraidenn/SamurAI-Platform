@@ -56,6 +56,10 @@ class UserResponse(BaseModel):
         curp: User's CURP
         role: User role (citizen or admin)
         created_at: Registration timestamp
+        strike_count: Number of strikes
+        is_banned: Whether user is banned
+        ban_until: When ban expires (if temporary)
+        ban_reason: Reason for ban
     """
     id: int
     name: str
@@ -63,6 +67,35 @@ class UserResponse(BaseModel):
     curp: str
     role: str
     created_at: datetime
+    strike_count: int = 0
+    is_banned: int = 0
+    ban_until: datetime | None = None
+    ban_reason: str | None = None
     
     class Config:
         from_attributes = True  # Enables ORM mode for SQLAlchemy models
+
+
+class UserUpdate(BaseModel):
+    """
+    Schema for updating user profile.
+    
+    Users can only update their email address.
+    Name changes must be requested through an administrator.
+    
+    Attributes:
+        email: Updated email address
+    """
+    email: EmailStr
+
+
+class ChangePassword(BaseModel):
+    """
+    Schema for changing user password.
+    
+    Attributes:
+        current_password: Current password for verification
+        new_password: New password to set
+    """
+    current_password: str = Field(..., min_length=1)
+    new_password: str = Field(..., min_length=8)

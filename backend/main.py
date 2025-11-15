@@ -7,7 +7,10 @@ includes routers, and sets up the database.
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.database import engine, Base
-from backend.routes import users_router, reports_router, admin_router
+from backend.routes import users as users_router
+from backend.routes import reports as reports_router
+from backend.routes import admin as admin_router
+from backend.routes import name_change as name_change_router
 from backend.config import CORS_ORIGINS
 
 
@@ -23,19 +26,30 @@ app = FastAPI(
 
 # Configure CORS middleware
 # Allow requests from frontend (loaded from .env)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=CORS_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],  # Allow all HTTP methods
-    allow_headers=["*"],  # Allow all headers
-)
+# Note: When using wildcard (*), credentials must be False
+if CORS_ORIGINS == ["*"]:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=False,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+else:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=CORS_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 
 # Include routers with their respective prefixes
-app.include_router(users_router)      # /auth endpoints
-app.include_router(reports_router)    # /reports endpoints
-app.include_router(admin_router)      # /admin endpoints
+app.include_router(users_router.router)          # /auth endpoints
+app.include_router(reports_router.router)        # /reports endpoints
+app.include_router(admin_router.router)          # /admin endpoints
+app.include_router(name_change_router.router)    # /name-change endpoints
 
 
 @app.on_event("startup")

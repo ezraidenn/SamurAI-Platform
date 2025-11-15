@@ -56,6 +56,15 @@ export function AuthProvider({ children }) {
   };
 
   /**
+   * Update user data in context and localStorage
+   * @param {Object} updatedUserData - Updated user information
+   */
+  const updateUser = (updatedUserData) => {
+    setUser(updatedUserData);
+    localStorage.setItem('user', JSON.stringify(updatedUserData));
+  };
+
+  /**
    * Check if user is authenticated
    * @returns {boolean}
    */
@@ -138,6 +147,7 @@ export function AuthProvider({ children }) {
     loading,
     login,
     logout,
+    updateUser,
     isAuthenticated,
     isAdmin,
     isSupervisor,
