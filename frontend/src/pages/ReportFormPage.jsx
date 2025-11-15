@@ -470,11 +470,20 @@ export default function ReportFormPage() {
           <button
             onClick={() => {
               setShowStrikeModal(false);
-              navigate('/panel');
+              setStrikeData(null);
+              // Solo redirigir si hubo un strike, sino mantener en el formulario
+              if (strikeData.strikeIssued) {
+                navigate('/panel');
+              }
+              // Si no hubo strike, solo limpia la foto para que el usuario suba otra
+              if (!strikeData.strikeIssued && strikeData.type === 'image') {
+                setFormData(prev => ({ ...prev, photo: null }));
+                setPhotoPreview(null);
+              }
             }}
             className="w-full py-3 px-6 bg-guinda text-white rounded-lg font-semibold hover:bg-guinda/90 transition-colors"
           >
-            Entendido
+            {strikeData.strikeIssued ? 'Entendido' : 'Cambiar Foto'}
           </button>
         </motion.div>
       </div>
