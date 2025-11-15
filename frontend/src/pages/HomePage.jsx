@@ -6,7 +6,7 @@
  */
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getPublicApprovedReports, getPublicAnnouncements, createAnnouncement } from '../services/api';
+import { getPublicApprovedReports, getPublicAnnouncements, createAnnouncement, deleteAnnouncement } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 // Iconos SVG para las 4 categorías
@@ -45,7 +45,9 @@ function HomePage() {
     description: '',
     type: 'anuncio',
     priority: 3,
-    link_url: ''
+    link_url: '',
+    duration_value: 1,
+    duration_unit: 'days'
   });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -123,12 +125,40 @@ function HomePage() {
     setError('');
 
     try {
+      // Calcular fecha de expiración
+      const now = new Date();
+      let expiresAt = null;
+      
+      if (formData.duration_value && formData.duration_unit) {
+        const duration = parseInt(formData.duration_value);
+        switch (formData.duration_unit) {
+          case 'hours':
+            expiresAt = new Date(now.getTime() + duration * 60 * 60 * 1000);
+            break;
+          case 'days':
+            expiresAt = new Date(now.getTime() + duration * 24 * 60 * 60 * 1000);
+            break;
+          case 'weeks':
+            expiresAt = new Date(now.getTime() + duration * 7 * 24 * 60 * 60 * 1000);
+            break;
+          case 'months':
+            expiresAt = new Date(now.setMonth(now.getMonth() + duration));
+            break;
+        }
+      }
+      
       // Crear FormData para enviar archivo
       const formDataToSend = new FormData();
       formDataToSend.append('title', formData.title);
       formDataToSend.append('description', formData.description);
       formDataToSend.append('type', formData.type);
       formDataToSend.append('priority', formData.priority.toString());
+      
+      // Agregar fecha de expiración si existe
+      if (expiresAt) {
+        formDataToSend.append('expires_at', expiresAt.toISOString());
+      }
+      
       // Solo agregar link_url si tiene valor
       if (formData.link_url && formData.link_url.trim()) {
         formDataToSend.append('link_url', formData.link_url);
@@ -157,7 +187,9 @@ function HomePage() {
         description: '',
         type: 'anuncio',
         priority: 3,
-        link_url: ''
+        link_url: '',
+        duration_value: 1,
+        duration_unit: 'days'
       });
       setImageFile(null);
       setImagePreview(null);
@@ -179,6 +211,28 @@ function HomePage() {
       setError(errorMessage);
     } finally {
       setCreating(false);
+    }
+  };
+
+  // Eliminar anuncio
+  const handleDeleteAnnouncement = async (announcementId) => {
+    if (!window.confirm('¿Estás seguro de que deseas eliminar este anuncio?')) {
+      return;
+    }
+
+    try {
+      await deleteAnnouncement(announcementId);
+      
+      // Recargar anuncios
+      const announcementsData = await getPublicAnnouncements(10);
+      setAnnouncements(announcementsData);
+      
+      // Cerrar modal
+      setShowDetailModal(false);
+      setSelectedItem(null);
+    } catch (err) {
+      console.error('Error al eliminar anuncio:', err);
+      alert('Error al eliminar el anuncio');
     }
   };
 
@@ -247,9 +301,15 @@ function HomePage() {
                     {(currentItem?.image_url || currentItem?.photo_url) && (
                       <div className="relative h-64 md:h-full overflow-hidden">
                         <img
-                          src={currentItem?.image_url || currentItem?.photo_url}
+                          src={currentItem?.image_url 
+                            ? `${import.meta.env.VITE_API_BASE_URL}${currentItem.image_url}` 
+                            : currentItem?.photo_url}
                           alt={currentItem?.title}
                           className="w-full h-full object-cover"
+                          onError={(e) => {
+                            console.error('Error loading image:', e.target.src);
+                            e.target.style.display = 'none';
+                          }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                       </div>
@@ -655,6 +715,40 @@ function HomePage() {
                   </p>
                 </div>
 
+                {/* Duración del Anuncio */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Duración del Anuncio *
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <input
+                      type="number"
+                      name="duration_value"
+                      value={formData.duration_value}
+                      onChange={handleInputChange}
+                      required
+                      min={1}
+                      className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-guinda focus:border-transparent"
+                      placeholder="Cantidad"
+                    />
+                    <select
+                      name="duration_unit"
+                      value={formData.duration_unit}
+                      onChange={handleInputChange}
+                      required
+                      className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-guinda focus:border-transparent"
+                    >
+                      <option value="hours">Horas</option>
+                      <option value="days">Días</option>
+                      <option value="weeks">Semanas</option>
+                      <option value="months">Meses</option>
+                    </select>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">
+                    El anuncio se ocultará automáticamente después de este tiempo
+                  </p>
+                </div>
+
                 {/* Error */}
                 {error && (
                   <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -817,6 +911,20 @@ function HomePage() {
                       </svg>
                     </a>
                   )}
+                  
+                  {/* Botón de eliminar (solo para anuncios y usuarios supervisor/admin) */}
+                  {!selectedItem.category && user && (user.role === 'supervisor' || user.role === 'admin') && (
+                    <button
+                      onClick={() => handleDeleteAnnouncement(selectedItem.id)}
+                      className="w-full bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      <span>Eliminar Anuncio</span>
+                    </button>
+                  )}
+                  
                   <button
                     onClick={() => setShowDetailModal(false)}
                     className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-3 rounded-lg font-semibold transition-colors"

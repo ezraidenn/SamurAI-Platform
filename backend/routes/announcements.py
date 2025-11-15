@@ -167,6 +167,7 @@ async def create_announcement(
     announcement_type: str = Form(..., alias="type"),
     priority: str = Form("3"),
     link_url: Optional[str] = Form(""),
+    expires_at: Optional[str] = Form(None),
     image: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_supervisor_or_admin)
@@ -206,12 +207,22 @@ async def create_announcement(
     if link_url_clean == "":
         link_url_clean = None
     
+    # Procesar expires_at
+    from datetime import datetime
+    expires_at_dt = None
+    if expires_at:
+        try:
+            expires_at_dt = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
+        except Exception as e:
+            print(f"⚠️ Error parsing expires_at: {e}")
+    
     print(f"\n📝 Creating announcement:")
     print(f"   Title: {title}")
     print(f"   Description: {description[:50]}...")
     print(f"   Type: {announcement_type}")
     print(f"   Priority: {priority_int}")
     print(f"   Link URL: {link_url_clean}")
+    print(f"   Expires at: {expires_at_dt}")
     print(f"   Image: {image.filename if image else 'None'}")
     print(f"   User: {current_user.name} (ID: {current_user.id})")
     
@@ -252,6 +263,7 @@ async def create_announcement(
             priority=priority_int,
             image_url=image_url,
             link_url=link_url_clean,
+            expires_at=expires_at_dt,
             created_by=current_user.id
         )
         
