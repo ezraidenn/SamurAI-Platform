@@ -79,7 +79,6 @@ export default function ReportFormPage() {
   const [success, setSuccess] = useState(false);
 
   const [formData, setFormData] = useState({
-    damageCategory: '',
     colonia: '',
     direccion: '',
     codigoPostal: '97357', // Código postal de Ucú pre-llenado
@@ -87,8 +86,6 @@ export default function ReportFormPage() {
     location: null,
     photo: null,
   });
-
-  const [currentStep, setCurrentStep] = useState(1); // 1: Selección de daño, 2: Formulario
 
   const [photoPreview, setPhotoPreview] = useState(null);
   const [errors, setErrors] = useState({});
@@ -190,21 +187,8 @@ export default function ReportFormPage() {
     }
   };
 
-  const handleCategorySelect = (categoryId) => {
-    setFormData(prev => ({ ...prev, damageCategory: categoryId }));
-    setCurrentStep(2);
-  };
-
-  const handleBackToCategories = () => {
-    setCurrentStep(1);
-  };
-
   const validateForm = () => {
     const newErrors = {};
-
-    if (!formData.damageCategory) {
-      newErrors.damageCategory = 'Selecciona un tipo de daño';
-    }
 
     // Validar colonia
     if (!formData.colonia) {
@@ -252,12 +236,8 @@ export default function ReportFormPage() {
     setImageRejection(null);
 
     try {
-      // Obtener título de la categoría seleccionada
-      const selectedCategory = DAMAGE_CATEGORIES.find(cat => cat.id === formData.damageCategory);
-      
-      // Crear descripción completa del reporte
-      const descripcionCompleta = `TIPO DE DAÑO: ${selectedCategory?.title || 'No especificado'}\n` +
-        `COLONIA: ${formData.colonia}\n` +
+      // Crear descripción completa del reporte (sin categoría, la IA la determinará)
+      const descripcionCompleta = `COLONIA: ${formData.colonia}\n` +
         `DIRECCIÓN: ${formData.direccion}\n` +
         `CÓDIGO POSTAL: ${formData.codigoPostal}\n` +
         `REFERENCIAS: ${formData.referencias}`;
@@ -269,7 +249,7 @@ export default function ReportFormPage() {
         try {
           const validationResult = await validatePhotoWithAI(
             formData.photo,
-            formData.damageCategory || 'bache', // Usar damageCategory del formulario UCU
+            'infraestructura', // Categoría genérica, la IA determinará la específica
             descripcionCompleta
           );
           
@@ -515,99 +495,7 @@ export default function ReportFormPage() {
     );
   }
 
-  // Renderizar selector de categorías
-  if (currentStep === 1) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-guinda/5 flex items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4 }}
-          className="w-full max-w-5xl"
-        >
-          {/* Header */}
-          <div className="text-center mb-8">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: "spring" }}
-              className="inline-block mb-4"
-            >
-              <div className="w-20 h-20 bg-guinda rounded-full flex items-center justify-center shadow-lg">
-                <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              </div>
-            </motion.div>
-            <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4">
-              Reportar Daño Vial
-            </h1>
-            <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-6">
-              Selecciona el tipo de daño que deseas reportar
-            </p>
-          </div>
-
-          {/* Mensaje de restricción municipal */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="mb-8 bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg shadow-sm"
-          >
-            <div className="flex items-start">
-              <svg className="w-6 h-6 text-amber-600 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <div>
-                <p className="font-semibold text-amber-900 mb-1">Importante - Municipio de Ucú</p>
-                <p className="text-sm text-amber-800 leading-relaxed">
-                  Este sistema de reportes es únicamente para daños dentro del municipio de Ucú. Si el problema pertenece a otra zona, tu reporte no podrá ser procesado.
-                </p>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Grid de categorías */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-            {DAMAGE_CATEGORIES.map((category, index) => (
-              <motion.button
-                key={category.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 * index }}
-                onClick={() => handleCategorySelect(category.id)}
-                className="group relative bg-white rounded-2xl p-6 md:p-8 shadow-md hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-guinda focus:outline-none focus:ring-4 focus:ring-guinda/20"
-              >
-                {/* Icono */}
-                <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-4 text-guinda group-hover:scale-110 transition-transform duration-300">
-                  {category.icon}
-                </div>
-                
-                {/* Título */}
-                <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2 group-hover:text-guinda transition-colors">
-                  {category.title}
-                </h3>
-                
-                {/* Descripción */}
-                <p className="text-sm md:text-base text-gray-600 leading-relaxed">
-                  {category.description}
-                </p>
-
-                {/* Indicador de hover */}
-                <div className="absolute top-4 right-4 w-6 h-6 rounded-full border-2 border-gray-300 group-hover:border-guinda group-hover:bg-guinda transition-all duration-300 flex items-center justify-center">
-                  <svg className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-              </motion.button>
-            ))}
-          </div>
-        </motion.div>
-      </div>
-    );
-  }
-
-  // Renderizar formulario (Step 2)
+  // Renderizar formulario directamente (sin selección de categoría)
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-4 md:py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
