@@ -22,7 +22,11 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30")
 
 # CORS Configuration
 CORS_ORIGINS_STR = os.getenv("CORS_ORIGINS", "http://localhost:3000")
-CORS_ORIGINS = [origin.strip() for origin in CORS_ORIGINS_STR.split(",")]
+# Soportar wildcard (*) o lista de URLs separadas por comas
+if CORS_ORIGINS_STR.strip() == "*":
+    CORS_ORIGINS = ["*"]
+else:
+    CORS_ORIGINS = [origin.strip() for origin in CORS_ORIGINS_STR.split(",")]
 
 # Environment
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
