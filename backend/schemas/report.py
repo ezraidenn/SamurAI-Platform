@@ -4,7 +4,7 @@ Report Pydantic schemas for request/response validation.
 Defines validation models for report-related API operations.
 """
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Dict, Any
 from pydantic import BaseModel, Field
 
 
@@ -81,6 +81,7 @@ class ReportResponse(BaseModel):
     ai_rejection_reason: Optional[str] = None
     created_at: datetime
     updated_at: datetime
+    user: Optional[Dict[str, Any]] = None  # User information
     
     class Config:
         from_attributes = True  # Enables ORM mode for SQLAlchemy models

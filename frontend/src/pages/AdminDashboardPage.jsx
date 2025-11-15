@@ -826,7 +826,12 @@ export default function AdminDashboardPage() {
                           )}
                           <div className="flex justify-between">
                             <span className="opacity-90">Rol:</span>
-                            <span className="font-medium capitalize">{selectedReport.user?.role || 'citizen'}</span>
+                            <span className="font-medium capitalize">
+                              {selectedReport.user?.role === 'admin' ? 'Administrador' :
+                               selectedReport.user?.role === 'supervisor' ? 'Supervisor' :
+                               selectedReport.user?.role === 'operator' ? 'Operador' :
+                               'Ciudadano'}
+                            </span>
                           </div>
                         </div>
                       </div>

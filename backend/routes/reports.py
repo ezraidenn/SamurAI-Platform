@@ -413,7 +413,23 @@ async def get_reports(
     query = query.order_by(Report.created_at.desc())
     
     reports = query.all()
-    return reports
+    
+    # Add user information to each report
+    reports_with_users = []
+    for report in reports:
+        report_dict = {
+            **report.__dict__,
+            "user": {
+                "id": report.user.id,
+                "name": report.user.name,
+                "email": report.user.email,
+                "role": report.user.role,
+                "curp": report.user.curp
+            } if report.user else None
+        }
+        reports_with_users.append(report_dict)
+    
+    return reports_with_users
 
 
 @router.get("/{report_id}", response_model=ReportResponse)
