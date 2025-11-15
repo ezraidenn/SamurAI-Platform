@@ -474,11 +474,13 @@ export default function ReportFormPage() {
               // Solo redirigir si hubo un strike, sino mantener en el formulario
               if (strikeData.strikeIssued) {
                 navigate('/panel');
-              }
-              // Si no hubo strike, solo limpia la foto para que el usuario suba otra
-              if (!strikeData.strikeIssued && strikeData.type === 'image') {
-                setFormData(prev => ({ ...prev, photo: null }));
+              } else if (strikeData.type === 'image') {
+                // Si no hubo strike, solo limpia la foto pero mantiene TODO lo demás
+                // (ubicación, categoría, colonia, dirección, CP, referencias)
                 setPhotoPreview(null);
+                // Crear un input file temporal para resetear el input
+                const fileInput = document.querySelector('input[type="file"]');
+                if (fileInput) fileInput.value = '';
               }
             }}
             className="w-full py-3 px-6 bg-guinda text-white rounded-lg font-semibold hover:bg-guinda/90 transition-colors"
@@ -947,6 +949,29 @@ export default function ReportFormPage() {
                 '✓ Enviar Reporte'
               )}
             </button>
+
+            {/* Mensaje informativo mientras carga */}
+            {loading && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg"
+              >
+                <div className="flex items-start">
+                  <svg className="w-6 h-6 text-blue-500 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div>
+                    <p className="text-base font-semibold text-blue-900 mb-1">
+                      🔍 Analizando su reporte...
+                    </p>
+                    <p className="text-sm text-blue-800">
+                      Por favor, no cambie de pantalla hasta que finalice el proceso. Estamos validando la información y la fotografía.
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
           </form>
         </motion.div>
       </div>
