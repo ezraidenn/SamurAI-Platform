@@ -84,6 +84,59 @@ export const getCurrentUser = async () => {
   return response.data;
 };
 
+/**
+ * Update user profile
+ * @param {Object} profileData - Updated profile data (name)
+ * @returns {Promise} Updated user data
+ */
+export const updateProfile = async (profileData) => {
+  const response = await api.patch('/auth/profile', profileData);
+  return response.data;
+};
+
+/**
+ * Change user password
+ * @param {Object} passwordData - Current and new password
+ * @returns {Promise} Success message
+ */
+export const changePassword = async (passwordData) => {
+  const response = await api.patch('/auth/change-password', passwordData);
+  return response.data;
+};
+
+// ============================================================================
+// Name Change Requests API
+// ============================================================================
+
+/**
+ * Create a name change request
+ * @param {Object} requestData - Requested name and reason
+ * @returns {Promise} Created request
+ */
+export const createNameChangeRequest = async (requestData) => {
+  const response = await api.post('/name-change/request', requestData);
+  return response.data;
+};
+
+/**
+ * Get current user's name change requests
+ * @returns {Promise} Array of requests
+ */
+export const getMyNameChangeRequests = async () => {
+  const response = await api.get('/name-change/my-requests');
+  return response.data;
+};
+
+/**
+ * Cancel a name change request
+ * @param {number} requestId - Request ID
+ * @returns {Promise} Success message
+ */
+export const cancelNameChangeRequest = async (requestId) => {
+  const response = await api.delete(`/name-change/${requestId}`);
+  return response.data;
+};
+
 // ============================================================================
 // Reports API
 // ============================================================================

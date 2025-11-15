@@ -74,3 +74,28 @@ class UserResponse(BaseModel):
     
     class Config:
         from_attributes = True  # Enables ORM mode for SQLAlchemy models
+
+
+class UserUpdate(BaseModel):
+    """
+    Schema for updating user profile.
+    
+    Users can only update their email address.
+    Name changes must be requested through an administrator.
+    
+    Attributes:
+        email: Updated email address
+    """
+    email: EmailStr
+
+
+class ChangePassword(BaseModel):
+    """
+    Schema for changing user password.
+    
+    Attributes:
+        current_password: Current password for verification
+        new_password: New password to set
+    """
+    current_password: str = Field(..., min_length=1)
+    new_password: str = Field(..., min_length=8)

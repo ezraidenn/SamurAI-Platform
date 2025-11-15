@@ -52,6 +52,11 @@ class RoleUpdate(BaseModel):
     role: str = Field(..., pattern="^(citizen|operator|supervisor|admin)$")
 
 
+class UserNameUpdate(BaseModel):
+    """Schema for updating user name (admin only)."""
+    name: str = Field(..., min_length=1, max_length=100)
+
+
 class AssignReport(BaseModel):
     """Schema for assigning report to user."""
     assigned_to: int = Field(..., description="User ID to assign the report to")
@@ -271,6 +276,56 @@ async def update_user_role(
         "role": user.role,
         "previous_role": old_role,
         "message": f"User role updated from {old_role} to {role_update.role}"
+    }
+
+
+@router.patch("/users/{user_id}/name")
+async def update_user_name(
+    user_id: int,
+    name_update: UserNameUpdate,
+    db: Session = Depends(get_db),
+    admin_user: User = Depends(require_admin)
+):
+    """
+    Update a user's name (admin only).
+    
+    Only administrators can change user names.
+    Users must request name changes through an administrator.
+    
+    Args:
+        user_id: ID of user to update
+        name_update: New name data
+        db: Database session
+        admin_user: Authenticated admin user
+        
+    Returns:
+        Updated user information
+        
+    Raises:
+        404: If user not found
+    """
+    # Find user
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Update name
+    old_name = user.name
+    user.name = name_update.name
+    
+    db.commit()
+    db.refresh(user)
+    
+    return {
+        "id": user.id,
+        "name": user.name,
+        "email": user.email,
+        "role": user.role,
+        "previous_name": old_name,
+        "message": f"User name updated from '{old_name}' to '{name_update.name}'"
     }
 
 
