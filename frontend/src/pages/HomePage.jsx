@@ -6,7 +6,8 @@
  */
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getPublicApprovedReports } from '../services/api';
+import { getPublicApprovedReports, getPublicAnnouncements, createAnnouncement } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 // Iconos SVG para las 4 categorías
 const categoryIcons = {
@@ -33,40 +34,153 @@ const categoryIcons = {
 };
 
 function HomePage() {
+  const { user } = useAuth();
   const [reports, setReports] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    type: 'anuncio',
+    priority: 3,
+    link_url: ''
+  });
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState('');
 
-  // Cargar reportes recientes aprobados (público, sin autenticación)
+  // Cargar reportes y anuncios (público, sin autenticación)
   useEffect(() => {
-    const fetchReports = async () => {
+    const fetchData = async () => {
       try {
-        const data = await getPublicApprovedReports(5);
-        setReports(data);
+        const [reportsData, announcementsData] = await Promise.all([
+          getPublicApprovedReports(5),
+          getPublicAnnouncements(10)
+        ]);
+        setReports(reportsData);
+        setAnnouncements(announcementsData);
       } catch (error) {
-        console.error('Error al cargar reportes:', error);
-        // Si hay error, simplemente no mostrar reportes
+        console.error('Error al cargar datos:', error);
         setReports([]);
+        setAnnouncements([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchReports();
+    fetchData();
   }, []);
+
+  // Combinar anuncios y reportes para el banner
+  const bannerItems = [...announcements, ...reports];
 
   // Rotación automática del banner cada 5 segundos
   useEffect(() => {
-    if (reports.length === 0) return;
+    if (bannerItems.length === 0) return;
 
     const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % reports.length);
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % bannerItems.length);
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [reports.length]);
+  }, [bannerItems.length]);
 
-  const currentReport = reports[currentIndex];
+  const currentItem = bannerItems[currentIndex];
+  const isAnnouncement = currentItem && !currentItem.category; // Los reportes tienen category
+
+  // Manejar cambios en el formulario
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Manejar cambio de imagen
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      // Crear preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Crear anuncio
+  const handleCreateAnnouncement = async (e) => {
+    e.preventDefault();
+    setCreating(true);
+    setError('');
+
+    try {
+      // Crear FormData para enviar archivo
+      const formDataToSend = new FormData();
+      formDataToSend.append('title', formData.title);
+      formDataToSend.append('description', formData.description);
+      formDataToSend.append('type', formData.type);
+      formDataToSend.append('priority', formData.priority.toString());
+      // Solo agregar link_url si tiene valor
+      if (formData.link_url && formData.link_url.trim()) {
+        formDataToSend.append('link_url', formData.link_url);
+      }
+      // Solo agregar imagen si existe
+      if (imageFile) {
+        formDataToSend.append('image', imageFile);
+      }
+      
+      // Debug: ver qué se está enviando
+      console.log('📤 Enviando FormData:');
+      for (let [key, value] of formDataToSend.entries()) {
+        console.log(`  ${key}:`, value);
+      }
+
+      await createAnnouncement(formDataToSend);
+      
+      // Recargar anuncios
+      const announcementsData = await getPublicAnnouncements(10);
+      setAnnouncements(announcementsData);
+      
+      // Cerrar modal y resetear formulario
+      setShowCreateModal(false);
+      setFormData({
+        title: '',
+        description: '',
+        type: 'anuncio',
+        priority: 3,
+        link_url: ''
+      });
+      setImageFile(null);
+      setImagePreview(null);
+    } catch (err) {
+      console.error('Error al crear anuncio:', err);
+      // Manejar diferentes tipos de errores
+      let errorMessage = 'Error al crear el anuncio';
+      if (err.response?.data?.detail) {
+        const detail = err.response.data.detail;
+        // Si detail es un array (errores de validación)
+        if (Array.isArray(detail)) {
+          errorMessage = detail.map(e => e.msg || e.message || JSON.stringify(e)).join(', ');
+        } else if (typeof detail === 'string') {
+          errorMessage = detail;
+        } else {
+          errorMessage = JSON.stringify(detail);
+        }
+      }
+      setError(errorMessage);
+    } finally {
+      setCreating(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -109,72 +223,129 @@ function HomePage() {
               <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-guinda mx-auto mb-4"></div>
               <p className="text-gray-600">Cargando reportes...</p>
             </div>
-          ) : reports.length === 0 ? (
+          ) : bannerItems.length === 0 ? (
             <div className="p-12 text-center">
               <p className="text-gray-600 text-lg">
-                No hay reportes disponibles en este momento
+                No hay contenido disponible en este momento
               </p>
             </div>
           ) : (
-            <div className="relative h-96">
+            <div className="relative h-[500px] md:h-[600px]">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentIndex}
-                  initial={{ opacity: 0, x: 100 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -100 }}
-                  transition={{ duration: 0.5 }}
-                  className="absolute inset-0 p-8"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.6 }}
+                  className="absolute inset-0"
                 >
-                  <div className="h-full flex flex-col justify-between">
-                    {/* Contenido del reporte */}
-                    <div>
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2 bg-guinda text-white px-4 py-2 rounded-full">
-                          <div className="w-5 h-5">
-                            {categoryIcons[currentReport?.category] || categoryIcons['via_mal_estado']}
-                          </div>
-                          <span className="text-sm font-semibold">
-                            {currentReport?.category?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'General'}
+                  {/* Layout con imagen o sin imagen */}
+                  <div className={`h-full ${currentItem?.image_url || currentItem?.photo_url ? 'grid md:grid-cols-2 gap-0' : 'flex items-center justify-center'}`}>
+                    
+                    {/* Imagen (si existe) */}
+                    {(currentItem?.image_url || currentItem?.photo_url) && (
+                      <div className="relative h-64 md:h-full overflow-hidden">
+                        <img
+                          src={currentItem?.image_url || currentItem?.photo_url}
+                          alt={currentItem?.title}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                      </div>
+                    )}
+
+                    {/* Contenido */}
+                    <div className="p-8 md:p-12 flex flex-col justify-between h-full">
+                      <div>
+                        {/* Badge y fecha */}
+                        <div className="flex items-center justify-between mb-6">
+                          {isAnnouncement ? (
+                            <div className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-5 py-2.5 rounded-full shadow-lg">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                              </svg>
+                              <span className="text-sm font-bold uppercase tracking-wide">
+                                {currentItem?.type || 'ANUNCIO'}
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 bg-gradient-to-r from-guinda to-guinda-dark text-white px-5 py-2.5 rounded-full shadow-lg">
+                              <div className="w-5 h-5">
+                                {categoryIcons[currentItem?.category] || categoryIcons['via_mal_estado']}
+                              </div>
+                              <span className="text-sm font-bold uppercase tracking-wide">
+                                {currentItem?.category?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'REPORTE'}
+                              </span>
+                            </div>
+                          )}
+                          <span className="text-gray-500 text-sm font-medium">
+                            {new Date(currentItem?.created_at).toLocaleDateString('es-MX', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric'
+                            })}
                           </span>
                         </div>
-                        <span className="text-gray-500 text-sm">
-                          {new Date(currentReport?.created_at).toLocaleDateString('es-MX', {
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric'
-                          })}
-                        </span>
+
+                        {/* Título */}
+                        <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 leading-tight">
+                          {currentItem?.title || 'Sin título'}
+                        </h3>
+
+                        {/* Descripción */}
+                        <p className="text-gray-700 text-lg leading-relaxed mb-6">
+                          {currentItem?.description?.substring(0, 150)}
+                          {currentItem?.description?.length > 150 ? '...' : ''}
+                        </p>
+
+                        {/* Metadata */}
+                        <div className="space-y-2 mb-6">
+                          <div className="flex items-center text-gray-600">
+                            <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span className="font-medium">Municipio de Ucú, Yucatán</span>
+                          </div>
+
+                          {!isAnnouncement && (
+                            <div className="flex items-center text-gray-600">
+                              <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              </svg>
+                              <span>Reportado por ciudadano</span>
+                            </div>
+                          )}
+                          {isAnnouncement && currentItem?.creator_name && (
+                            <div className="flex items-center text-gray-600">
+                              <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              </svg>
+                              <span>Publicado por: {currentItem.creator_name}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
 
-                      <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                        {currentReport?.title || 'Sin título'}
-                      </h3>
+                      {/* Botón Ver Más y Navegación */}
+                      <div className="space-y-4">
+                        <button
+                          onClick={() => {
+                            setSelectedItem(currentItem);
+                            setShowDetailModal(true);
+                          }}
+                          className="w-full bg-gradient-to-r from-guinda to-guinda-dark hover:from-guinda-dark hover:to-guinda text-white px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center gap-3 group"
+                        >
+                          <span>Ver Detalles Completos</span>
+                          <svg className="w-6 h-6 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                          </svg>
+                        </button>
 
-                      <p className="text-gray-700 text-lg leading-relaxed mb-4">
-                        {currentReport?.description?.substring(0, 200)}
-                        {currentReport?.description?.length > 200 ? '...' : ''}
-                      </p>
-
-                      <div className="flex items-center text-gray-600 mb-2">
-                        <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        <span>Municipio de Ucú, Yucatán</span>
-                      </div>
-
-                      <div className="flex items-center text-gray-600">
-                        <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                        <span>Reportado por ciudadano de Ucú</span>
-                      </div>
-                    </div>
-
-                    {/* Indicadores de navegación */}
-                    <div className="flex justify-center items-center space-x-2 mt-6">
-                      {reports.map((_, index) => (
+                        {/* Indicadores de navegación */}
+                        <div className="flex justify-center items-center space-x-2">
+                      {bannerItems.map((_, index) => (
                         <button
                           key={index}
                           onClick={() => setCurrentIndex(index)}
@@ -186,6 +357,8 @@ function HomePage() {
                           aria-label={`Ir al reporte ${index + 1}`}
                         />
                       ))}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
@@ -330,6 +503,332 @@ function HomePage() {
           <p className="text-sm">© 2024 Municipio de Ucú, Yucatán - Todos los derechos reservados</p>
         </motion.div>
       </div>
+
+      {/* Botón flotante para crear anuncios (solo admin/supervisor) */}
+      {user && (user.role === 'admin' || user.role === 'supervisor') && (
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="fixed bottom-8 right-8 bg-guinda hover:bg-guinda-dark text-white p-4 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 z-50 flex items-center gap-2"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          <span className="hidden md:inline font-semibold">Crear Anuncio</span>
+        </button>
+      )}
+
+      {/* Modal para crear anuncio */}
+      <AnimatePresence>
+        {showCreateModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            >
+              {/* Header del modal */}
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">Crear Nuevo Anuncio</h2>
+                <button
+                  onClick={() => setShowCreateModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Formulario */}
+              <form onSubmit={handleCreateAnnouncement} className="space-y-6">
+                {/* Título */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Título *
+                  </label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleInputChange}
+                    required
+                    minLength={5}
+                    maxLength={200}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-guinda focus:border-transparent"
+                    placeholder="Título del anuncio"
+                  />
+                </div>
+
+                {/* Descripción */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Descripción *
+                  </label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    required
+                    minLength={10}
+                    maxLength={1000}
+                    rows={5}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-guinda focus:border-transparent resize-none"
+                    placeholder="Descripción detallada del anuncio"
+                  />
+                </div>
+
+                {/* Tipo */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Tipo *
+                  </label>
+                  <select
+                    name="type"
+                    value={formData.type}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-guinda focus:border-transparent"
+                  >
+                    <option value="anuncio">Anuncio</option>
+                    <option value="aviso">Aviso</option>
+                    <option value="reporte">Reporte Especial</option>
+                  </select>
+                </div>
+
+                {/* Subir Imagen */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Imagen (opcional)
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-guinda focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-guinda file:text-white hover:file:bg-guinda-dark"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    Formatos: JPG, PNG, GIF, WEBP (máx. 5MB)
+                  </p>
+                  {imagePreview && (
+                    <div className="mt-3">
+                      <img src={imagePreview} alt="Preview" className="w-full h-48 object-cover rounded-lg" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Enlace Externo */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Enlace Externo (opcional)
+                  </label>
+                  <input
+                    type="url"
+                    name="link_url"
+                    value={formData.link_url}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-guinda focus:border-transparent"
+                    placeholder="https://ejemplo.com"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    Agrega un enlace para más información
+                  </p>
+                </div>
+
+                {/* Prioridad */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Prioridad (1-5) *
+                  </label>
+                  <input
+                    type="number"
+                    name="priority"
+                    value={formData.priority}
+                    onChange={handleInputChange}
+                    required
+                    min={1}
+                    max={5}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-guinda focus:border-transparent"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    Mayor prioridad = aparece primero en el banner
+                  </p>
+                </div>
+
+                {/* Error */}
+                {error && (
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-red-800 text-sm">{error}</p>
+                  </div>
+                )}
+
+                {/* Botones */}
+                <div className="flex gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateModal(false)}
+                    className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={creating}
+                    className="flex-1 px-6 py-3 bg-guinda text-white rounded-lg hover:bg-guinda-dark transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {creating ? 'Creando...' : 'Crear Anuncio'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal de Detalles Completos */}
+      <AnimatePresence>
+        {showDetailModal && selectedItem && (
+          <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4" onClick={() => setShowDetailModal(false)}>
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 50 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+            >
+              {/* Imagen destacada (si existe) */}
+              {(selectedItem.image_url || selectedItem.photo_url) && (
+                <div className="relative h-80 overflow-hidden rounded-t-2xl">
+                  <img
+                    src={selectedItem.image_url || selectedItem.photo_url}
+                    alt={selectedItem.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-4 right-4">
+                    <button
+                      onClick={() => setShowDetailModal(false)}
+                      className="bg-white/90 hover:bg-white text-gray-800 p-2 rounded-full transition-colors shadow-lg"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Contenido */}
+              <div className="p-8">
+                {/* Header sin imagen */}
+                {!(selectedItem.image_url || selectedItem.photo_url) && (
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-3xl font-bold text-gray-900">Detalles Completos</h2>
+                    <button
+                      onClick={() => setShowDetailModal(false)}
+                      className="text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
+
+                {/* Badge */}
+                <div className="mb-4">
+                  {!selectedItem.category ? (
+                    <span className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-5 py-2.5 rounded-full shadow-lg text-sm font-bold uppercase">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                      </svg>
+                      {selectedItem.type || 'ANUNCIO'}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-2 bg-gradient-to-r from-guinda to-guinda-dark text-white px-5 py-2.5 rounded-full shadow-lg text-sm font-bold uppercase">
+                      <div className="w-5 h-5">
+                        {categoryIcons[selectedItem.category] || categoryIcons['via_mal_estado']}
+                      </div>
+                      {selectedItem.category?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    </span>
+                  )}
+                </div>
+
+                {/* Título */}
+                <h1 className="text-4xl font-bold text-gray-900 mb-4">{selectedItem.title}</h1>
+
+                {/* Fecha */}
+                <p className="text-gray-500 mb-6">
+                  {new Date(selectedItem.created_at).toLocaleDateString('es-MX', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </p>
+
+                {/* Descripción completa */}
+                <div className="prose prose-lg max-w-none mb-8">
+                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                    {selectedItem.description}
+                  </p>
+                </div>
+
+                {/* Metadata */}
+                <div className="border-t pt-6 space-y-3">
+                  <div className="flex items-center text-gray-600">
+                    <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span className="font-medium">Municipio de Ucú, Yucatán</span>
+                  </div>
+
+                  {selectedItem.creator_name && (
+                    <div className="flex items-center text-gray-600">
+                      <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      <span>Publicado por: <strong>{selectedItem.creator_name}</strong></span>
+                    </div>
+                  )}
+
+                  {selectedItem.priority && (
+                    <div className="flex items-center text-gray-600">
+                      <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      <span>Prioridad: <strong>{selectedItem.priority}/5</strong></span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Botones */}
+                <div className="mt-8 space-y-3">
+                  {selectedItem.link_url && (
+                    <a
+                      href={selectedItem.link_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full bg-gradient-to-r from-guinda to-guinda-dark hover:from-guinda-dark hover:to-guinda text-white px-6 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2"
+                    >
+                      <span>Ver Más Información</span>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                    </a>
+                  )}
+                  <button
+                    onClick={() => setShowDetailModal(false)}
+                    className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 px-6 py-3 rounded-lg font-semibold transition-colors"
+                  >
+                    Cerrar
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

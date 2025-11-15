@@ -6,12 +6,15 @@ includes routers, and sets up the database.
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from backend.database import engine, Base
 from backend.routes import users as users_router
 from backend.routes import reports as reports_router
 from backend.routes import admin as admin_router
 from backend.routes import name_change as name_change_router
+from backend.routes import announcements as announcements_router
 from backend.config import CORS_ORIGINS
+from pathlib import Path
 
 
 # Create FastAPI application
@@ -34,6 +37,7 @@ if CORS_ORIGINS == ["*"]:
         allow_credentials=False,
         allow_methods=["*"],
         allow_headers=["*"],
+        expose_headers=["*"],
     )
 else:
     app.add_middleware(
@@ -42,6 +46,7 @@ else:
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
+        expose_headers=["*"],
     )
 
 
@@ -50,6 +55,12 @@ app.include_router(users_router.router)          # /auth endpoints
 app.include_router(reports_router.router)        # /reports endpoints
 app.include_router(admin_router.router)          # /admin endpoints
 app.include_router(name_change_router.router)    # /name-change endpoints
+app.include_router(announcements_router.router)  # /announcements endpoints
+
+# Mount static files for uploads
+UPLOAD_DIR = Path("backend/uploads")
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
 
 
 @app.on_event("startup")
