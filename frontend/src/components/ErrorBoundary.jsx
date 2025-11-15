@@ -28,6 +28,18 @@ class ErrorBoundary extends Component {
     window.location.reload();
   };
 
+  handleGoHome = () => {
+    // Detectar si el usuario está logueado verificando el token
+    const token = localStorage.getItem('token');
+    if (token) {
+      // Usuario logueado - ir al panel
+      window.location.href = '/panel';
+    } else {
+      // Usuario no logueado - ir al inicio
+      window.location.href = '/';
+    }
+  };
+
   render() {
     if (this.state.hasError) {
       return (
@@ -78,12 +90,12 @@ class ErrorBoundary extends Component {
               >
                 Recargar Página
               </button>
-              <a
-                href="/"
+              <button
+                onClick={this.handleGoHome}
                 className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
               >
                 Ir al Inicio
-              </a>
+              </button>
             </div>
           </div>
         </div>

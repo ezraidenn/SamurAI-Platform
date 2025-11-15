@@ -504,29 +504,18 @@ export default function ReportFormPage() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4 }}
         >
-          {/* Botón volver */}
-          <button
-            onClick={handleBackToCategories}
-            className="mb-4 flex items-center gap-2 text-guinda hover:text-guinda-dark font-semibold transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Volver a selección de daño
-          </button>
-
           {/* Header del formulario */}
           <div className="mb-6 text-center">
             <div className="inline-block p-3 bg-guinda/10 rounded-full mb-3">
-              <div className="w-12 h-12 text-guinda">
-                {DAMAGE_CATEGORIES.find(cat => cat.id === formData.damageCategory)?.icon}
-              </div>
+              <svg className="w-12 h-12 text-guinda" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
             </div>
             <h1 className="text-2xl md:text-3xl font-bold text-guinda mb-2">
-              {DAMAGE_CATEGORIES.find(cat => cat.id === formData.damageCategory)?.title}
+              Reportar Daño Vial
             </h1>
             <p className="text-gray-600">
-              Completa la información del reporte
+              Completa la información del reporte. La IA clasificará automáticamente el tipo de daño.
             </p>
           </div>
 
