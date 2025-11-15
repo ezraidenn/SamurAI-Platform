@@ -13,13 +13,13 @@ class ReportBase(BaseModel):
     Base report schema with common fields.
     
     Attributes:
-        category: Type of incident (bache, alumbrado, basura, drenaje, vialidad)
+        category: Type of incident (via_mal_estado, infraestructura_danada, senalizacion_transito, iluminacion_visibilidad)
         description: Detailed description of the incident
         latitude: GPS latitude coordinate
         longitude: GPS longitude coordinate
         photo_url: Optional URL to photo evidence
     """
-    category: str = Field(..., pattern="^(bache|alumbrado|basura|drenaje|vialidad)$")
+    category: str = Field(..., pattern="^(via_mal_estado|infraestructura_danada|senalizacion_transito|iluminacion_visibilidad)$")
     description: str = Field(..., min_length=10, max_length=1000)
     latitude: float = Field(..., ge=-90, le=90)
     longitude: float = Field(..., ge=-180, le=180)

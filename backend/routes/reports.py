@@ -581,3 +581,29 @@ async def upload_report_photo(
     db.refresh(report)
     
     return report
+
+
+@router.get("/public/approved", response_model=List[ReportResponse])
+async def get_public_approved_reports(
+    limit: int = Query(5, ge=1, le=20),
+    db: Session = Depends(get_db)
+):
+    """
+    Get approved reports for public display (no authentication required).
+    
+    This endpoint is used for the home page banner to show recent approved reports.
+    
+    Args:
+        limit: Maximum number of reports to return (default: 5, max: 20)
+        db: Database session
+        
+    Returns:
+        List of approved reports ordered by creation date (newest first)
+    """
+    reports = db.query(Report)\
+        .filter(Report.status == 'approved')\
+        .order_by(Report.created_at.desc())\
+        .limit(limit)\
+        .all()
+    
+    return reports

@@ -20,6 +20,7 @@ import UserManagementPage from './pages/UserManagementPage';
 import ProfilePage from './pages/ProfilePage';
 import OperatorDashboardPage from './pages/OperatorDashboardPage';
 import OperatorReportDetailPage from './pages/OperatorReportDetailPage';
+import HomePage from './pages/HomePage';
 
 // Componente interno que usa el hook de timeout
 function AppContent() {
@@ -32,6 +33,18 @@ function AppContent() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          
+          {/* HomePage - Protected route with layout */}
+          <Route
+            path="/inicio"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <HomePage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
 
           {/* Citizen routes - require authentication */}
           <Route
