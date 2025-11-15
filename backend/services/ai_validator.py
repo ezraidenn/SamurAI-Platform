@@ -237,7 +237,7 @@ Responde siempre en formato JSON."""
         Analyze a civic report using AI to validate and improve categorization.
         
         Args:
-            category: User-selected category (bache, alumbrado, basura, drenaje, vialidad)
+            category: User-selected category (via_mal_estado, infraestructura_danada, senalizacion_transito, iluminacion_visibilidad)
             description: User's description of the issue
             has_photo: Whether the report includes a photo
             
@@ -303,12 +303,11 @@ Tu trabajo es analizar reportes ciudadanos sobre problemas urbanos y determinar:
 5. Impacto estimado en la comunidad
 6. Recomendaciones para el personal municipal
 
-Categorías válidas:
-- bache: Hoyos en calles, pavimento dañado
-- alumbrado: Luces públicas apagadas o dañadas
-- basura: Acumulación de basura, contenedores llenos
-- drenaje: Fugas, inundaciones, alcantarillas tapadas
-- vialidad: Señales dañadas, semáforos, tráfico
+Categorías válidas (4 categorías englobadas):
+- via_mal_estado: Baches, grietas, fisuras, hundimientos, deformaciones y topes irregulares en calles
+- infraestructura_danada: Banquetas rotas, drenaje insuficiente, alcantarillas o tapas de registro dañadas
+- senalizacion_transito: Señalización dañada, semáforos fuera de servicio, pintura vial desgastada
+- iluminacion_visibilidad: Falta de alumbrado público, vegetación que obstruye visibilidad
 
 Responde SIEMPRE en formato JSON con esta estructura exacta:
 {
@@ -350,10 +349,10 @@ Proporciona un análisis completo en formato JSON."""
             "recommendations": result.get("recommendations", [])[:5]  # Limit to 5 recommendations
         }
         
-        # Validate category
-        valid_categories = ["bache", "alumbrado", "basura", "drenaje", "vialidad"]
+        # Validate category (4 categorías englobadas)
+        valid_categories = ["via_mal_estado", "infraestructura_danada", "senalizacion_transito", "iluminacion_visibilidad"]
         if normalized["suggested_category"] not in valid_categories:
-            normalized["suggested_category"] = original_category
+            normalized["suggested_category"] = "via_mal_estado"  # Default
         
         # Validate urgency level
         valid_urgency = ["low", "medium", "high", "critical"]
@@ -397,12 +396,11 @@ Tu trabajo es analizar la imagen y determinar:
 4. Detalles específicos observados
 5. Cantidad/magnitud del problema
 
-Categorías de problemas cívicos VÁLIDOS:
-- bache: Hoyos en calles, pavimento dañado, grietas en asfalto
-- alumbrado: Luces públicas apagadas, postes caídos, cables sueltos
-- basura: Acumulación de residuos, contenedores llenos, basura en vía pública
-- drenaje: Fugas de agua, inundaciones, alcantarillas tapadas
-- vialidad: Señales dañadas, semáforos rotos, obstáculos en vía
+Categorías de problemas cívicos VÁLIDOS (4 categorías englobadas):
+- via_mal_estado: Baches, grietas, fisuras, hundimientos, deformaciones y topes irregulares en calles
+- infraestructura_danada: Banquetas rotas, drenaje insuficiente, alcantarillas o tapas de registro dañadas
+- senalizacion_transito: Señalización dañada, semáforos fuera de servicio, pintura vial desgastada
+- iluminacion_visibilidad: Falta de alumbrado público, vegetación que obstruye visibilidad
 
 EJEMPLOS DE IMÁGENES INVÁLIDAS:
 - Selfies o fotos de personas

@@ -243,7 +243,7 @@ export default function ReportFormPage() {
         `REFERENCIAS: ${formData.referencias}`;
 
       // Variable para guardar la categoría sugerida por la IA
-      let suggestedCategory = 'bache'; // Default
+      let suggestedCategory = 'via_mal_estado'; // Default
       
       // STEP 1: Validate photo with AI FIRST (if photo provided)
       if (formData.photo) {
