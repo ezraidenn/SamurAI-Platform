@@ -242,6 +242,14 @@ export default function ReportFormPage() {
         `CÓDIGO POSTAL: ${formData.codigoPostal}\n` +
         `REFERENCIAS: ${formData.referencias}`;
 
+      // Las 4 categorías válidas del sistema
+      const validCategories = [
+        'via_mal_estado',
+        'infraestructura_danada', 
+        'senalizacion_transito',
+        'iluminacion_visibilidad'
+      ];
+      
       // Variable para guardar la categoría sugerida por la IA
       let suggestedCategory = 'via_mal_estado'; // Default
       
@@ -260,8 +268,16 @@ export default function ReportFormPage() {
           
           // Guardar la categoría sugerida por la IA
           if (validationResult.ai_analysis?.suggested_category) {
-            suggestedCategory = validationResult.ai_analysis.suggested_category;
-            console.log('🤖 IA sugiere categoría:', suggestedCategory);
+            const aiCategory = validationResult.ai_analysis.suggested_category;
+            console.log('🤖 IA sugiere categoría:', aiCategory);
+            
+            // Validar que sea una categoría válida, sino usar default
+            if (validCategories.includes(aiCategory)) {
+              suggestedCategory = aiCategory;
+            } else {
+              console.warn('⚠️ Categoría no válida, usando default');
+            }
+            console.log('📝 Categoría final:', suggestedCategory);
           }
           
           // If validation returned AI analysis, show it to user
@@ -347,6 +363,13 @@ export default function ReportFormPage() {
       // STEP 2: Create report (only if photo passed validation or no photo)
       console.log('📝 Creando reporte...');
       console.log('📂 Usando categoría:', suggestedCategory);
+      console.log('📍 Ubicación:', formData.location);
+      
+      // Validar que la ubicación tenga lat y lng
+      if (!formData.location || !formData.location.lat || !formData.location.lng) {
+        throw new Error('Por favor selecciona una ubicación válida en el mapa');
+      }
+      
       const reportData = {
         category: suggestedCategory, // Categoría sugerida por la IA
         description: descripcionCompleta,
@@ -354,6 +377,7 @@ export default function ReportFormPage() {
         longitude: formData.location.lng,
       };
 
+      console.log('📤 Datos del reporte:', reportData);
       const createdReport = await createReport(reportData);
       console.log('✅ Reporte creado:', createdReport);
 
@@ -373,11 +397,20 @@ export default function ReportFormPage() {
       
     } catch (err) {
       console.error('❌ Error creating report:', err);
+      console.error('❌ Error response:', err.response?.data);
       
       if (err.response?.data?.detail) {
-        setError(typeof err.response.data.detail === 'string' 
-          ? err.response.data.detail 
-          : 'Error al crear el reporte');
+        // Si el error es un array de validación de Pydantic
+        if (Array.isArray(err.response.data.detail)) {
+          const errorMessages = err.response.data.detail.map(e => `${e.loc.join('.')}: ${e.msg}`).join(', ');
+          setError(`Error de validación: ${errorMessages}`);
+        } else {
+          setError(typeof err.response.data.detail === 'string' 
+            ? err.response.data.detail 
+            : 'Error al crear el reporte');
+        }
+      } else if (err.message) {
+        setError(err.message);
       } else {
         setError('Error al crear el reporte. Por favor intenta de nuevo.');
       }

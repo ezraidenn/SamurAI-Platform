@@ -162,6 +162,16 @@ export const getReports = async (filters = {}) => {
 };
 
 /**
+ * Get approved reports for public display (no authentication required)
+ * @param {number} limit - Maximum number of reports to return (default: 5)
+ * @returns {Promise} Array of approved reports
+ */
+export const getPublicApprovedReports = async (limit = 5) => {
+  const response = await api.get('/reports/public/approved', { params: { limit } });
+  return response.data;
+};
+
+/**
  * Get single report by ID
  * @param {number} reportId - Report ID
  * @returns {Promise} Report data

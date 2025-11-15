@@ -48,15 +48,14 @@ export default function MainLayout({ children }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <a 
-              href="#" 
-              onClick={handleLogoClick}
-              className="flex items-center space-x-2 cursor-pointer hover:opacity-90 transition-opacity"
+            <Link
+              to="/inicio"
+              className="text-white hover:text-white/80 transition-colors"
             >
               <div className="text-2xl font-bold">
                 UCU Reporta
               </div>
-            </a>
+            </Link>
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-6">
@@ -267,6 +266,7 @@ export default function MainLayout({ children }) {
                     >
                       👤 Mi Perfil - {user.name}
                     </Link>
+                    
                     {user.role === 'citizen' && (
                       <>
                         <Link
