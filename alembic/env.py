@@ -14,6 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from backend.database import Base
 from backend.models.user import User
 from backend.models.report import Report
+from backend.models.strike import Strike
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

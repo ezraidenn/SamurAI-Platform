@@ -129,6 +129,31 @@ export const deleteReport = async (reportId) => {
 };
 
 /**
+ * Validate photo with AI before creating report
+ * @param {File} file - Image file
+ * @param {string} category - Report category
+ * @param {string} description - Report description
+ * @returns {Promise} Validation result with AI analysis
+ */
+export const validatePhotoWithAI = async (file, category, description) => {
+  const formData = new FormData();
+  formData.append('photo', file);
+  formData.append('category', category);
+  formData.append('description', description);
+  
+  const response = await api.post('/reports/validate-photo', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+    params: {
+      category,
+      description
+    }
+  });
+  return response.data;
+};
+
+/**
  * Upload photo for a report
  * @param {number} reportId - Report ID
  * @param {File} file - Image file

@@ -50,6 +50,12 @@ class ReportResponse(BaseModel):
         photo_url: Optional photo URL
         priority: Priority level (1-5)
         status: Current status (pendiente, en_proceso, resuelto)
+        ai_validated: Whether AI validation was performed
+        ai_confidence: AI confidence score (0-1)
+        ai_suggested_category: AI suggested category
+        ai_urgency_level: AI urgency assessment
+        ai_keywords: AI extracted keywords (JSON string)
+        ai_reasoning: AI reasoning for categorization
         created_at: Creation timestamp
         updated_at: Last update timestamp
     """
@@ -62,6 +68,17 @@ class ReportResponse(BaseModel):
     photo_url: Optional[str]
     priority: int
     status: str
+    ai_validated: int
+    ai_confidence: Optional[float] = None
+    ai_suggested_category: Optional[str] = None
+    ai_urgency_level: Optional[str] = None
+    ai_keywords: Optional[str] = None
+    ai_reasoning: Optional[str] = None
+    ai_image_valid: Optional[int] = None
+    ai_severity_score: Optional[int] = None
+    ai_observed_details: Optional[str] = None
+    ai_quantity_assessment: Optional[str] = None
+    ai_rejection_reason: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     

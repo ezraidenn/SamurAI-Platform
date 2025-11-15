@@ -1,66 +1,64 @@
 # 🚀 Quick Start - UCU Reporta
 
-## Paso 1: Subir a GitHub
+## ⚡ Inicio Rápido (Recomendado)
 
+### Opción 1: Script Automático
 ```bash
-cd "C:\Users\raulc\Downloads\SamurAI Reportes"
-
-# Inicializar Git (si no está inicializado)
-git init
-
-# Agregar todos los archivos
-git add .
-
-# Commit inicial
-git commit -m "🎉 UCU Reporta - Plataforma completa de reportes ciudadanos"
-
-# Conectar con GitHub
-git remote add origin https://github.com/ezraidenn/SamurAI-Platform.git
-
-# Subir (forzar si el repo ya tiene contenido)
-git branch -M main
-git push -u origin main --force
+# Doble click en:
+start_all.bat
 ```
 
-## Paso 2: Iniciar el Backend
+Esto iniciará automáticamente:
+- ✅ Backend en http://localhost:8000
+- ✅ Frontend en http://localhost:3000
+- ✅ Abrirá el navegador
+
+---
+
+## 📋 Inicio Manual (Paso a Paso)
+
+### Paso 1: Iniciar el Backend
 
 ```bash
-# Abrir terminal 1
+# Terminal 1
 cd "C:\Users\raulc\Downloads\SamurAI Reportes"
+python start_backend.py
+```
 
-# Activar entorno virtual
-venv\Scripts\activate
-
-# Iniciar backend
-uvicorn backend.main:app --reload
+**Deberías ver:**
+```
+🔧 BACKEND CONFIGURATION
+Host: 0.0.0.0
+Port: 8000
+AI Validation: ✅ Enabled
+✓ UCU Reporta API is running
 ```
 
 ✅ Backend corriendo en: http://localhost:8000
 
-## Paso 3: Crear Usuario Admin
+### Paso 2: Iniciar el Frontend
 
 ```bash
-# Abrir terminal 2 (con el backend corriendo)
-cd "C:\Users\raulc\Downloads\SamurAI Reportes"
-
-# Activar entorno virtual
-venv\Scripts\activate
-
-# Ejecutar script
-python create_admin_simple.py
-```
-
-## Paso 4: Iniciar el Frontend
-
-```bash
-# Abrir terminal 3
+# Terminal 2
 cd "C:\Users\raulc\Downloads\SamurAI Reportes\frontend"
-
-# Iniciar frontend
 npm run dev
 ```
 
+**Deberías ver:**
+```
+  ➜  Local:   http://localhost:3000/
+  ➜  Network: http://10.186.174.19:3000/
+```
+
 ✅ Frontend corriendo en: http://localhost:3000
+
+### Paso 3: Crear Usuario Admin (Solo primera vez)
+
+```bash
+# Terminal 3 (con backend corriendo)
+cd "C:\Users\raulc\Downloads\SamurAI Reportes"
+python scripts\quick_create_admin.py
+```
 
 ## Paso 5: Acceder al Dashboard Admin
 
@@ -168,6 +166,26 @@ git push origin main
 ---
 
 ## ⚠️ Troubleshooting
+
+### ❌ Error: "Network Error" o "ERR_CONNECTION_TIMED_OUT"
+
+**Causa:** El backend NO está corriendo.
+
+**Solución:**
+```bash
+# 1. Abrir nueva terminal
+cd "C:\Users\raulc\Downloads\SamurAI Reportes"
+
+# 2. Iniciar backend
+python start_backend.py
+
+# 3. Verificar que muestre:
+# ✓ UCU Reporta API is running
+```
+
+**Verificar que funciona:**
+- Abre http://localhost:8000/health en el navegador
+- Deberías ver: `{"status":"healthy","service":"UCU Reporta API"}`
 
 ### Backend no inicia
 ```bash

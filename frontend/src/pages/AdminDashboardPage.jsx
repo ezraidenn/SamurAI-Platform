@@ -349,10 +349,20 @@ export default function AdminDashboardPage() {
                       <tr key={report.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 text-sm text-gray-900">#{report.id}</td>
                         <td className="px-6 py-4 text-sm">
-                          <span className="flex items-center">
-                            <span className="text-xl mr-2">{categoryIcons[report.category]}</span>
-                            <span className="capitalize">{report.category}</span>
-                          </span>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-xl">{categoryIcons[report.category]}</span>
+                            <div className="flex flex-col">
+                              <span className="capitalize">{report.category}</span>
+                              {report.ai_validated === 1 && (
+                                <span className="flex items-center text-xs text-purple-600 font-medium">
+                                  <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                  </svg>
+                                  IA {report.ai_confidence ? `${(report.ai_confidence * 100).toFixed(0)}%` : ''}
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
                           {report.description}
@@ -470,6 +480,173 @@ export default function AdminDashboardPage() {
                         {selectedReport.description}
                       </p>
                     </div>
+
+                    {/* AI Analysis Section */}
+                    {selectedReport.ai_validated === 1 && (
+                      <div className="bg-gradient-to-br from-purple-50 to-blue-50 p-6 rounded-xl border-2 border-purple-200">
+                        <div className="flex items-center mb-4">
+                          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center mr-3">
+                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                            </svg>
+                          </div>
+                          <div>
+                            <h4 className="text-lg font-bold text-gray-900">Análisis de IA</h4>
+                            <p className="text-sm text-gray-600">Validación automática con GPT-4o-mini</p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          {/* Confidence Score */}
+                          <div className="bg-white p-3 rounded-lg">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-semibold text-gray-700">Nivel de Confianza</span>
+                              <span className="text-lg font-bold text-purple-600">
+                                {selectedReport.ai_confidence ? `${(selectedReport.ai_confidence * 100).toFixed(0)}%` : 'N/A'}
+                              </span>
+                            </div>
+                            {selectedReport.ai_confidence && (
+                              <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div 
+                                  className={`h-2 rounded-full ${
+                                    selectedReport.ai_confidence >= 0.8 ? 'bg-green-500' :
+                                    selectedReport.ai_confidence >= 0.6 ? 'bg-yellow-500' :
+                                    'bg-orange-500'
+                                  }`}
+                                  style={{ width: `${selectedReport.ai_confidence * 100}%` }}
+                                ></div>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Urgency Level */}
+                          {selectedReport.ai_urgency_level && (
+                            <div className="bg-white p-3 rounded-lg">
+                              <span className="text-sm font-semibold text-gray-700 block mb-2">Nivel de Urgencia</span>
+                              <span className={`inline-block px-3 py-1 rounded-full text-sm font-bold ${
+                                selectedReport.ai_urgency_level === 'critical' ? 'bg-red-100 text-red-800' :
+                                selectedReport.ai_urgency_level === 'high' ? 'bg-orange-100 text-orange-800' :
+                                selectedReport.ai_urgency_level === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-green-100 text-green-800'
+                              }`}>
+                                {selectedReport.ai_urgency_level.toUpperCase()}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Suggested Category */}
+                          {selectedReport.ai_suggested_category && (
+                            <div className="bg-white p-3 rounded-lg">
+                              <span className="text-sm font-semibold text-gray-700 block mb-2">Categoría Sugerida por IA</span>
+                              <div className="flex items-center space-x-2">
+                                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium capitalize">
+                                  {selectedReport.ai_suggested_category}
+                                </span>
+                                {selectedReport.ai_suggested_category !== selectedReport.category && (
+                                  <span className="text-xs text-orange-600 font-medium">
+                                    ⚠️ Difiere de la seleccionada ({selectedReport.category})
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Keywords */}
+                          {selectedReport.ai_keywords && (
+                            <div className="bg-white p-3 rounded-lg">
+                              <span className="text-sm font-semibold text-gray-700 block mb-2">Palabras Clave Detectadas</span>
+                              <div className="flex flex-wrap gap-2">
+                                {JSON.parse(selectedReport.ai_keywords).map((keyword, idx) => (
+                                  <span key={idx} className="px-2 py-1 bg-purple-100 text-purple-700 rounded-md text-xs font-medium">
+                                    {keyword}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Severity Score */}
+                          {selectedReport.ai_severity_score && (
+                            <div className="bg-white p-3 rounded-lg">
+                              <span className="text-sm font-semibold text-gray-700 block mb-2">Severidad del Problema</span>
+                              <div className="flex items-center space-x-3">
+                                <div className="flex-1">
+                                  <div className="flex justify-between text-xs text-gray-600 mb-1">
+                                    <span>Leve</span>
+                                    <span className="font-bold text-lg">{selectedReport.ai_severity_score}/10</span>
+                                    <span>Crítico</span>
+                                  </div>
+                                  <div className="w-full bg-gray-200 rounded-full h-3">
+                                    <div 
+                                      className={`h-3 rounded-full ${
+                                        selectedReport.ai_severity_score >= 8 ? 'bg-red-500' :
+                                        selectedReport.ai_severity_score >= 6 ? 'bg-orange-500' :
+                                        selectedReport.ai_severity_score >= 4 ? 'bg-yellow-500' :
+                                        'bg-green-500'
+                                      }`}
+                                      style={{ width: `${selectedReport.ai_severity_score * 10}%` }}
+                                    ></div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Quantity Assessment */}
+                          {selectedReport.ai_quantity_assessment && (
+                            <div className="bg-white p-3 rounded-lg">
+                              <span className="text-sm font-semibold text-gray-700 block mb-2">Cantidad Detectada</span>
+                              <span className={`inline-block px-3 py-1 rounded-full text-sm font-bold ${
+                                selectedReport.ai_quantity_assessment === 'mucho' ? 'bg-red-100 text-red-800' :
+                                selectedReport.ai_quantity_assessment === 'moderado' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-green-100 text-green-800'
+                              }`}>
+                                {selectedReport.ai_quantity_assessment.toUpperCase()}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Observed Details */}
+                          {selectedReport.ai_observed_details && (
+                            <div className="bg-white p-3 rounded-lg">
+                              <span className="text-sm font-semibold text-gray-700 block mb-2">
+                                🔍 Lo que Observó la IA en la Imagen
+                              </span>
+                              <p className="text-sm text-gray-700 leading-relaxed">
+                                {selectedReport.ai_observed_details}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* AI Reasoning */}
+                          {selectedReport.ai_reasoning && (
+                            <div className="bg-white p-3 rounded-lg">
+                              <span className="text-sm font-semibold text-gray-700 block mb-2">Razonamiento de la IA</span>
+                              <p className="text-sm text-gray-600 italic">
+                                "{selectedReport.ai_reasoning}"
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Rejection Reason (if invalid) */}
+                          {selectedReport.ai_rejection_reason && (
+                            <div className="bg-red-50 border-2 border-red-200 p-3 rounded-lg">
+                              <div className="flex items-start space-x-2">
+                                <svg className="w-5 h-5 text-red-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                </svg>
+                                <div>
+                                  <span className="text-sm font-bold text-red-800 block mb-1">⚠️ Imagen Rechazada</span>
+                                  <p className="text-sm text-red-700">
+                                    {selectedReport.ai_rejection_reason}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Location */}
                     <div>
