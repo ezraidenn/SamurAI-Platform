@@ -1,14 +1,32 @@
-# UCU Reporta 🏛️
+# UCU Reporta & Negocios 🏛️🏪
 
-**Plataforma de Reportes Ciudadanos para Municipios de Yucatán**
+**Plataforma Integral de Reportes Ciudadanos y Directorio de Negocios Locales**
 
-UCU Reporta is a modern civic reporting platform that enables citizens to report and track municipal issues like potholes, lighting problems, garbage collection, drainage issues, and road conditions.
+UCU Reporta es una plataforma moderna que combina dos sistemas esenciales para municipios:
+1. **Sistema de Reportes Ciudadanos**: Reporta y da seguimiento a problemas municipales (baches, alumbrado, basura, drenaje, vialidad)
+2. **Directorio de Negocios Locales**: Mapa interactivo con negocios verificados y POIs oficiales (escuelas, hospitales, gobierno)
 
 ## 🌟 Overview
 
-This project consists of:
-- **Backend**: FastAPI + SQLAlchemy + SQLite
-- **Frontend**: React + Vite + Tailwind CSS (to be implemented in PROMPT 3)
+Plataforma completa con dos módulos principales:
+
+### 📋 Sistema de Reportes
+- Reportes ciudadanos de problemas urbanos
+- Dashboard para operadores municipales
+- Validación automática con IA
+- Sistema de priorización inteligente
+
+### 🏪 Sistema de Negocios (POIs)
+- Directorio de negocios locales
+- Mapa interactivo con marcadores personalizados
+- POIs oficiales pre-cargados (escuelas, hospitales, gobierno)
+- Validación automática con IA (GPT-4 Vision)
+- Sistema de categorías inteligente
+
+**Stack Tecnológico:**
+- **Backend**: FastAPI + SQLAlchemy + PostgreSQL (Neon)
+- **Frontend**: React + Vite + Tailwind CSS + Leaflet
+- **IA**: OpenAI GPT-4o-mini con visión
 
 ## 🚀 Quick Start
 
@@ -51,157 +69,247 @@ The frontend will be available at:
 
 ```
 SamurAI Reportes/
-├── backend/              # FastAPI backend
-│   ├── main.py          # Application entry point
-│   ├── database.py      # Database configuration
-│   ├── models/          # SQLAlchemy models
-│   ├── schemas/         # Pydantic schemas
-│   ├── routes/          # API endpoints
-│   ├── auth/            # Authentication
-│   ├── utils/           # Utilities
-│   └── static/          # Static files and uploads
-├── frontend/            # React frontend (PROMPT 3)
-├── requirements.txt     # Python dependencies
-└── README.md           # This file
+├── backend/
+│   ├── main.py                    # Entry point con todos los routers
+│   ├── database.py                # PostgreSQL config con pool optimizado
+│   ├── config.py                  # Variables de entorno
+│   ├── models/
+│   │   ├── user.py               # Modelo de usuarios
+│   │   ├── report.py             # Modelo de reportes
+│   │   ├── point_of_interest.py  # Modelo de POIs/Negocios
+│   │   ├── announcement.py       # Modelo de anuncios
+│   │   └── strike.py             # Sistema de moderación
+│   ├── schemas/
+│   │   ├── user.py
+│   │   ├── report.py
+│   │   └── point_of_interest.py  # Schemas de POIs
+│   ├── routes/
+│   │   ├── users.py              # Auth y usuarios
+│   │   ├── reports.py            # CRUD de reportes
+│   │   ├── points_of_interest.py # CRUD de POIs
+│   │   ├── announcements.py      # Sistema de anuncios
+│   │   ├── admin.py              # Endpoints de admin
+│   │   └── name_change.py        # Cambio de nombres
+│   ├── services/
+│   │   └── poi_validator.py      # Validación IA con GPT-4 Vision
+│   ├── static/uploads/           # Fotos de reportes y POIs
+│   ├── seed_official_pois.py     # Script para POIs oficiales
+│   └── requirements.txt
+├── frontend/
+│   ├── src/
+│   │   ├── pages/
+│   │   │   ├── LoginPage.jsx
+│   │   │   ├── HomePage.jsx
+│   │   │   ├── AdminDashboardPage.jsx
+│   │   │   ├── OperatorDashboardPage.jsx
+│   │   │   ├── NegociosPage.jsx          # Hub de negocios
+│   │   │   ├── MapaNegociosPage.jsx      # Mapa interactivo
+│   │   │   ├── RegistrarNegocioPage.jsx  # Registro de negocio
+│   │   │   ├── MisNegociosPage.jsx       # Gestión de negocios
+│   │   │   └── ValidarNegociosPage.jsx   # Validación admin
+│   │   ├── components/
+│   │   │   ├── MapPicker.jsx             # Selector de ubicación
+│   │   │   └── UcuMap.jsx                # Mapa de reportes
+│   │   ├── constants/
+│   │   │   └── poiCategories.js          # Categorías de POIs
+│   │   ├── context/
+│   │   │   └── AuthContext.jsx
+│   │   └── services/
+│   │       └── api.js                    # Cliente API
+│   └── package.json
+├── INSTRUCCIONES_POIS_OFICIALES.md
+└── README.md
 ```
 
-## 🎯 Features
+## 🎯 Características Principales
 
-### ✅ Completed
+### 📋 Sistema de Reportes Ciudadanos
+- ✅ Registro y autenticación con JWT
+- ✅ Creación de reportes con foto y geolocalización
+- ✅ Dashboard ciudadano con filtros y estadísticas
+- ✅ Sistema de priorización automática
+- ✅ Seguimiento en tiempo real del estatus
+- ✅ Dashboard para operadores municipales
+- ✅ Panel de administración completo
+- ✅ Sistema de moderación con strikes
 
-**PROMPT 1** - Backend Base Structure
-- ✅ FastAPI backend with clean architecture
-- ✅ SQLAlchemy models (User, Report)
-- ✅ Pydantic validation schemas
-- ✅ Database configuration with SQLite
+### 🏪 Sistema de Negocios y POIs
+- ✅ Registro de negocios con validación IA
+- ✅ Pre-validación de fotos con GPT-4 Vision
+- ✅ Detección automática de categoría
+- ✅ Mapa interactivo con Leaflet
+- ✅ Marcadores personalizados por categoría
+- ✅ 13 POIs oficiales pre-cargados:
+  - 3 Escuelas (primaria, secundaria, telesecundaria)
+  - 2 Centros de salud (centro de salud, farmacia)
+  - 2 Oficinas de gobierno (palacio municipal, comisaría)
+  - 1 Iglesia
+  - 2 Espacios públicos (parque, cancha deportiva)
+  - 1 Gasolinera
+  - 2 Tiendas oficiales (OXXO, 3B)
+- ✅ POIs oficiales con borde dorado y badge de verificación
+- ✅ Sistema de validación humana para admins
+- ✅ Gestión de negocios propios
+- ✅ Filtros por categoría
+- ✅ Modal de detalles con toda la información
+- ✅ Opciones de admin (eliminar/editar)
 
-**PROMPT 2** - Authentication & Endpoints ✅
-- ✅ JWT-based authentication with Bearer tokens
-- ✅ User registration and login
-- ✅ CURP format validation
-- ✅ Report CRUD operations with role-based access
-- ✅ Photo upload functionality
-- ✅ Admin dashboard API with metrics
-- ✅ Enhanced priority engine with keyword detection
+### 🤖 Validación con IA
+- ✅ Integración con OpenAI GPT-4o-mini
+- ✅ Validación de fotos (apropiadas, relevantes)
+- ✅ Detección automática de categoría de negocio
+- ✅ Análisis de spam y contenido inapropiado
+- ✅ Sugerencias de mejora automáticas
+- ✅ Confianza y scoring de validación
 
-**PROMPT 3** - Frontend Base ✅
-- ✅ React + Vite project configured
-- ✅ Tailwind CSS with "guinda" institutional theme
-- ✅ Responsive navigation with mobile hamburger menu
-- ✅ React Router with all routes
-- ✅ API service with Axios + interceptors
-- ✅ Framer Motion animations
-- ✅ All placeholder pages created
+### 👥 Sistema de Usuarios y Roles
+- ✅ **Ciudadano**: Crear reportes y registrar negocios
+- ✅ **Operador**: Gestionar reportes asignados
+- ✅ **Supervisor**: Gestión de usuarios + operaciones
+- ✅ **Admin**: Control total del sistema
 
-**PROMPT 4** - Frontend Authentication ✅
-- ✅ AuthContext for state management
-- ✅ Full login functionality with backend integration
-- ✅ Registration with CURP validation (client + server)
-- ✅ ProtectedRoute component for route guards
-- ✅ Role-based access control (citizen/admin)
-- ✅ Session persistence with localStorage
-- ✅ Automatic redirects based on role
+### 📢 Sistema de Anuncios
+- ✅ Publicación de anuncios municipales
+- ✅ Subida de imágenes
+- ✅ Gestión de anuncios activos
 
-**PROMPT 5** - Citizen Reporting Features ✅
-- ✅ MapPicker component with Leaflet (interactive map)
-- ✅ Full report creation form with validation
-- ✅ Photo upload with preview and size validation
-- ✅ Dashboard with real data from backend
-- ✅ Charts with Recharts (pie + bar charts)
-- ✅ Filters by status and category
-- ✅ Report details modal
-- ✅ Responsive design (desktop table + mobile cards)
+## 🎉 Estado del Proyecto
 
-**PROMPT 6** - Admin Dashboard ✅
-- ✅ Complete KPIs (total, resolved, pending, in-progress, avg time)
-- ✅ Interactive map with colored markers by status
-- ✅ Popups on markers with report info
-- ✅ Charts (pie chart by status + bar chart by category)
-- ✅ Full reports table with admin actions
-- ✅ Status management modal
-- ✅ Real-time data from backend API
-- ✅ Responsive design with animations
+**Status**: ✅ **PRODUCCIÓN - DESPLEGADO**
 
-**PROMPT 7** - Final Polish & Production Ready ✅
-- ✅ Professional landing page with hero section
-- ✅ Error boundary for crash recovery
-- ✅ Complete deployment documentation
-- ✅ Security best practices documented
-- ✅ Production-ready configuration
-- ✅ CI/CD guidelines
-- ✅ Monitoring and backup strategies
-- ✅ Docker deployment option
+- ✅ Backend desplegado en Render
+- ✅ Frontend desplegado en Vercel
+- ✅ Base de datos PostgreSQL en Neon
+- ✅ Sistema de POIs completamente funcional
+- ✅ Validación IA operativa
+- ✅ Mapa interactivo con 13 POIs oficiales
+- ✅ Listo para uso municipal
 
-## 🎉 Project Status: COMPLETE & PRODUCTION READY
-
-All 7 PROMPTs have been successfully implemented. The platform is fully functional and ready for:
-- ✅ Live demos
-- ✅ User testing
-- ✅ Production deployment
-- ✅ Municipal adoption
-
-## 🛠️ Technology Stack
+## 🛠️ Stack Tecnológico
 
 ### Backend
-- Python 3.10+
-- FastAPI
-- SQLAlchemy
-- SQLite (PostgreSQL-ready)
-- Pydantic
-- JWT Authentication
+- **Python 3.13**
+- **FastAPI** - Framework web moderno y rápido
+- **SQLAlchemy** - ORM con soporte para PostgreSQL
+- **PostgreSQL (Neon)** - Base de datos en la nube
+- **Pydantic** - Validación de datos
+- **JWT** - Autenticación con tokens
+- **OpenAI GPT-4o-mini** - IA para validación
+- **Alembic** - Migraciones de base de datos
+- **Uvicorn** - Servidor ASGI
 
-### Frontend (Coming)
-- React 18
-- Vite
-- Tailwind CSS
-- React Router
-- Leaflet (maps)
-- Recharts (analytics)
-- Framer Motion (animations)
+### Frontend
+- **React 18** - Biblioteca UI
+- **Vite** - Build tool ultra-rápido
+- **Tailwind CSS** - Framework CSS utility-first
+- **React Router v6** - Navegación
+- **Leaflet** - Mapas interactivos
+- **Recharts** - Gráficos y analytics
+- **Framer Motion** - Animaciones fluidas
+- **Axios** - Cliente HTTP
 
-## 📊 Data Models
+### Infraestructura
+- **Render** - Hosting del backend
+- **Vercel** - Hosting del frontend
+- **Neon** - Base de datos PostgreSQL serverless
+- **GitHub** - Control de versiones
+
+## 📊 Modelos de Datos
 
 ### User
-- Email and CURP-based authentication
-- Roles: citizen or admin
-- Password hashing with bcrypt
+- Autenticación con email y CURP
+- Roles: citizen, operator, supervisor, admin
+- Sistema de strikes y moderación
+- Relaciones: reportes, POIs, anuncios
 
 ### Report
-- Categories: bache, alumbrado, basura, drenaje, vialidad
-- GPS coordinates
-- Priority (1-5, auto-calculated)
+- Categorías: bache, alumbrado, basura, drenaje, vialidad
+- Coordenadas GPS
+- Prioridad (1-5, auto-calculada)
 - Status: pendiente, en_proceso, resuelto
-- Optional photo evidence
+- Foto opcional
+
+### PointOfInterest (POI)
+- 17 categorías de negocios
+- Validación IA automática
+- Validación humana por admins
+- Coordenadas GPS
+- Foto, contacto, horarios, redes sociales
+- Campo `is_official` para POIs verificados
+
+### Announcement
+- Título, contenido, imagen
+- Fechas de inicio y fin
+- Visibilidad controlada
 
 ## 🌐 API Documentation
 
-Once the backend is running, visit:
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
+**Producción:**
+- **API**: https://samurai-backend.onrender.com
+- **Docs**: https://samurai-backend.onrender.com/docs
+- **ReDoc**: https://samurai-backend.onrender.com/redoc
 
-## 👥 Team
+**Local:**
+- **API**: http://localhost:8000
+- **Docs**: http://localhost:8000/docs
 
-Built for municipalities in Yucatán as part of a civic tech hackathon.
+## 🚀 Despliegue
 
-## 📝 License
+### URLs de Producción
+- **Frontend**: https://samurai-frontend.vercel.app
+- **Backend**: https://samurai-backend.onrender.com
+- **Base de Datos**: Neon PostgreSQL (pooled connection)
 
-This project is part of the UCU Reporta hackathon initiative.
+### Variables de Entorno Requeridas
+
+**Backend (.env):**
+```env
+DATABASE_URL=postgresql://...
+SECRET_KEY=your-secret-key
+OPENAI_API_KEY=sk-proj-...
+CORS_ORIGINS=https://tu-frontend.vercel.app
+```
+
+**Frontend (.env):**
+```env
+VITE_API_URL=https://samurai-backend.onrender.com
+```
+
+## 📚 Documentación Adicional
+
+- 📘 [Instrucciones POIs Oficiales](INSTRUCCIONES_POIS_OFICIALES.md) - Guía completa del sistema de POIs
+- 🔧 [Configuración de Equipo](CONFIGURACION_EQUIPO.md) - Setup del equipo de desarrollo
+
+## 👥 Equipo
+
+Desarrollado para municipios de Yucatán como parte de la iniciativa de tecnología cívica.
+
+**Desarrolladores:**
+- Raúl Cetina - Full Stack Developer & Product Lead
+
+## 📝 Licencia
+
+Este proyecto es parte de la iniciativa UCU Reporta para mejorar la participación ciudadana y el desarrollo económico local en municipios de Yucatán.
 
 ---
 
-**Current Status**: ALL 7 PROMPTS COMPLETE ✅  
-**Backend**: ✅ Production-ready with auth, CRUD, admin endpoints & priority engine  
-**Frontend**: ✅ Landing page, auth, citizen & admin dashboards with maps & charts  
-**Documentation**: ✅ Demo guide, deployment guide, and full API docs  
-**Platform Status**: 🚀 **100% COMPLETE & PRODUCTION READY**
+## 🎯 Quick Start Local
 
-### Quick Start
-1. **Backend**: `uvicorn backend.main:app --reload`
-2. **Frontend**: `npm run dev`
-3. **Visit**: http://localhost:3000
+```bash
+# Backend
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --reload
 
-### Documentation
-- 📘 [Demo Guide](DEMO.md) - Complete walkthrough
-- 🚀 [Deployment Guide](DEPLOYMENT.md) - Production deployment
-- 📚 [Backend README](backend/README.md) - API documentation
-- 🎨 [Frontend README](frontend/README.md) - Frontend details
+# Frontend (nueva terminal)
+cd frontend
+npm install
+npm run dev
+```
+
+**Visita:** http://localhost:3000
+
+---
+
+**Status**: ✅ **100% FUNCIONAL Y DESPLEGADO**  
+**Última actualización**: Noviembre 2025
