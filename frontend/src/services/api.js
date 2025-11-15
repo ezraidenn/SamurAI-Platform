@@ -7,7 +7,7 @@
 import axios from 'axios';
 
 // Base URL from environment variable or default to localhost
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 // Log API URL on load (for debugging)
 console.log('🔗 API Base URL:', BASE_URL);
