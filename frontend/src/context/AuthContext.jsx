@@ -141,6 +141,26 @@ export function AuthProvider({ children }) {
     return getRoleLevel() >= (levels[requiredRole] || 0);
   };
 
+  /**
+   * Get dashboard route based on user role
+   * @returns {string} Dashboard route
+   */
+  const getDashboardRoute = () => {
+    if (!user) return '/login';
+    
+    switch (user.role) {
+      case 'admin':
+        return '/admin';
+      case 'supervisor':
+        return '/supervisor';
+      case 'operator':
+        return '/operator';
+      case 'citizen':
+      default:
+        return '/panel';
+    }
+  };
+
   const value = {
     user,
     token,
@@ -156,6 +176,7 @@ export function AuthProvider({ children }) {
     isStaff,
     getRoleLevel,
     hasMinRole,
+    getDashboardRoute,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
