@@ -219,11 +219,11 @@ export default function MapPicker({ value, onChange, onLocationFound, height = '
       )}
 
       {/* Map Container */}
-      <div className={`${height} rounded-lg overflow-hidden border-2 border-gray-300 relative`}>
+      <div className={`${height} rounded-lg overflow-hidden border-2 border-gray-300 relative z-0`}>
         <MapContainer
           center={[defaultCenter.lat, defaultCenter.lng]}
           zoom={14}
-          style={{ height: '100%', width: '100%' }}
+          style={{ height: '100%', width: '100%', zIndex: 0 }}
           scrollWheelZoom={true}
           ref={mapRef}
           maxBounds={[[ucuBounds.south, ucuBounds.west], [ucuBounds.north, ucuBounds.east]]}

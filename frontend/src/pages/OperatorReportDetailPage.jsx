@@ -346,11 +346,11 @@ function OperatorReportDetailPage() {
                 className="bg-white rounded-lg shadow p-6"
               >
                 <h3 className="font-semibold text-gray-900 mb-4">🗺️ Ubicación en Mapa</h3>
-                <div className="h-96 rounded-lg overflow-hidden border border-gray-200">
+                <div className="h-96 rounded-lg overflow-hidden border border-gray-200 relative z-0">
                   <MapContainer
                     center={[report.latitude, report.longitude]}
                     zoom={16}
-                    style={{ height: '100%', width: '100%' }}
+                    style={{ height: '100%', width: '100%', zIndex: 0 }}
                   >
                     <TileLayer
                       url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

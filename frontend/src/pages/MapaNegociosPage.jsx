@@ -180,11 +180,11 @@ export default function MapaNegociosPage() {
               📍 {pois.length} negocio{pois.length !== 1 ? 's' : ''} encontrado{pois.length !== 1 ? 's' : ''}
             </p>
           </div>
-          <div style={{ height: '600px', width: '100%' }}>
+          <div style={{ height: '600px', width: '100%', position: 'relative', zIndex: 0 }}>
             <MapContainer
               center={UCU_CENTER}
               zoom={14}
-              style={{ height: '100%', width: '100%' }}
+              style={{ height: '100%', width: '100%', zIndex: 0 }}
               ref={mapRef}
             >
               <TileLayer
