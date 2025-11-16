@@ -379,7 +379,16 @@ export const assignReport = async (reportId, userId) => {
 export const getPhotoUrl = (photoUrl) => {
   if (!photoUrl) return null;
   if (photoUrl.startsWith('http')) return photoUrl;
-  return `${BASE_URL}${photoUrl}`;
+  
+  // Ensure BASE_URL is defined, fallback to production backend
+  const apiUrl = BASE_URL || 'https://samurai-backend-s8bz.onrender.com';
+  
+  // Log for debugging
+  if (!BASE_URL) {
+    console.warn('⚠️ BASE_URL is undefined, using fallback:', apiUrl);
+  }
+  
+  return `${apiUrl}${photoUrl}`;
 };
 
 // ============================================================================
