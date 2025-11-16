@@ -9,7 +9,7 @@ Implements progressive ban system (más gradual):
 - Strike 6: 1 semana ban
 - Strike 7+: Permanente
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 from backend.models.user import User
 from backend.models.strike import Strike
@@ -84,7 +84,7 @@ class ModerationService:
         
         # Update user strike count
         user.strike_count += 1
-        user.last_strike_at = datetime.utcnow()
+        user.last_strike_at = datetime.now(timezone.utc)
         
         # Determine ban duration
         ban_info = self._calculate_ban(user.strike_count, severity)
@@ -143,7 +143,7 @@ class ModerationService:
         # Get ban duration for strikes 3-6
         duration = self.BAN_DURATIONS.get(strike_count)
         if duration:
-            ban_until = datetime.utcnow() + duration
+            ban_until = datetime.now(timezone.utc) + duration
             
             # Format duration message
             if duration.days > 0:
@@ -181,7 +181,7 @@ class ModerationService:
         
         # Check if ban has expired
         if user.is_banned and user.ban_until:
-            if datetime.utcnow() > user.ban_until:
+            if datetime.now(timezone.utc) > user.ban_until:
                 # Ban expired - lift it
                 user.is_banned = 0
                 user.ban_until = None
@@ -200,7 +200,7 @@ class ModerationService:
             time_remaining = None
             
             if not is_permanent:
-                time_remaining = user.ban_until - datetime.utcnow()
+                time_remaining = user.ban_until - datetime.now(timezone.utc)
             
             return {
                 "is_banned": True,
