@@ -453,14 +453,12 @@ export default function ReportFormPage() {
                 </svg>
                 <div>
                   <p className="font-bold text-yellow-900 text-lg mb-1">
-                    Strike Registrado ({strikeData.strikeCount}/5)
+                    Contenido Rechazado
                   </p>
                   <p className="text-sm text-yellow-800">
-                    {strikeData.strikeCount >= 5 ? '❌ Tu cuenta ha sido suspendida permanentemente.' :
-                     strikeData.strikeCount >= 4 ? '⚠️ Próximo strike = suspensión permanente' :
-                     strikeData.strikeCount >= 3 ? '🔒 Tu cuenta ha sido suspendida temporalmente' :
-                     strikeData.strikeCount >= 2 ? '⚠️ Próximo strike = suspensión temporal' :
-                     '⚠️ Por favor, evita que bloqueemos tu cuenta permanentemente'}
+                    {strikeData.isBanned ? 
+                      '❌ Tu cuenta ha sido suspendida temporalmente por múltiples infracciones.' :
+                      '⚠️ Por favor, sigue las normas de la comunidad para evitar suspensiones.'}
                   </p>
                 </div>
               </div>

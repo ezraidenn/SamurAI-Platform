@@ -1,12 +1,13 @@
 """
 Moderation Service for handling user strikes and bans.
 
-Implements progressive ban system:
-- Strike 1: Warning (no ban)
-- Strike 2: 1 day ban
-- Strike 3: 7 days ban
-- Strike 4: 30 days ban
-- Strike 5+: Permanent ban
+Implements progressive ban system (más gradual):
+- Strikes 1-2: Warning (no ban)
+- Strike 3: 10 minutos ban
+- Strike 4: 30 minutos ban
+- Strike 5: 1 día ban
+- Strike 6: 1 semana ban
+- Strike 7+: Permanente
 """
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
@@ -18,13 +19,15 @@ from typing import Dict, Optional
 class ModerationService:
     """Service for managing user moderation, strikes, and bans"""
     
-    # Ban durations based on strike count
+    # Ban durations based on strike count (progresión más gradual)
     BAN_DURATIONS = {
         1: None,  # Warning only
-        2: timedelta(days=1),
-        3: timedelta(days=7),
-        4: timedelta(days=30),
-        5: None,  # Permanent (no expiration)
+        2: None,  # Warning only
+        3: timedelta(minutes=10),  # 10 minutos
+        4: timedelta(minutes=30),  # 30 minutos
+        5: timedelta(days=1),      # 1 día
+        6: timedelta(days=7),      # 1 semana
+        7: None,  # Permanent (no expiration)
     }
     
     def __init__(self, db: Session):
@@ -117,8 +120,8 @@ class ModerationService:
                 "is_permanent": True
             }
         
-        # First strike = warning only
-        if strike_count == 1:
+        # Strikes 1-2 = warning only
+        if strike_count <= 2:
             return {
                 "should_ban": False,
                 "ban_until": None,
@@ -127,9 +130,8 @@ class ModerationService:
                 "is_permanent": False
             }
         
-        # Get ban duration
-        if strike_count >= 5:
-            # Permanent ban
+        # Strike 7+ = Permanent ban
+        if strike_count >= 7:
             return {
                 "should_ban": True,
                 "ban_until": None,
@@ -138,15 +140,23 @@ class ModerationService:
                 "is_permanent": True
             }
         
+        # Get ban duration for strikes 3-6
         duration = self.BAN_DURATIONS.get(strike_count)
         if duration:
             ban_until = datetime.utcnow() + duration
-            days = duration.days
+            
+            # Format duration message
+            if duration.days > 0:
+                duration_text = f"{duration.days} día(s)"
+            else:
+                minutes = duration.seconds // 60
+                duration_text = f"{minutes} minuto(s)"
+            
             return {
                 "should_ban": True,
                 "ban_until": ban_until,
-                "ban_reason": f"Strike {strike_count} - Ban temporal de {days} día(s)",
-                "duration_days": days,
+                "ban_reason": f"Strike {strike_count} - Ban temporal de {duration_text}",
+                "duration_days": duration.days if duration.days > 0 else 0,
                 "is_permanent": False
             }
         

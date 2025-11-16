@@ -57,20 +57,34 @@ async def validate_photo_with_ai(
         validator = get_ai_validator()
         text_check = validator.check_offensive_text(description)
         
-        # Check for any invalid text (offensive, nonsense, test, or vague)
+        # Check for test text first (NO strike, just friendly rejection)
+        if text_check.get("is_test"):
+            return JSONResponse(
+                status_code=422,
+                content={
+                    "detail": {
+                        "error": "test_text",
+                        "message": "Texto de prueba detectado",
+                        "rejection_reason": text_check.get("rejection_reason"),
+                        "professional_feedback": text_check.get("professional_feedback"),
+                        "strike_issued": False  # NO strike para pruebas
+                    }
+                }
+            )
+        
+        # Check for other invalid text (offensive, nonsense, or vague)
         is_invalid = (
             text_check.get("is_offensive") or 
             text_check.get("is_inappropriate") or
             text_check.get("is_nonsense") or
-            text_check.get("is_test") or
             text_check.get("is_too_vague")
         )
         
         if is_invalid:
-            # Issue strike for offensive text
+            # Issue strike for offensive/nonsense/vague text
             moderation = get_moderation_service(db)
             
-            severity = text_check.get("severity", "high")
+            severity = text_check.get("severity", "medium")
             
             strike_info = moderation.issue_strike(
                 user_id=current_user.id,
