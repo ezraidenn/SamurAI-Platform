@@ -314,6 +314,20 @@ export default function ReportFormPage() {
             return; // STOP HERE - Don't create report
           }
           
+          // Check if text is a test (friendly rejection, no strike)
+          if (detail?.error === 'test_text') {
+            setStrikeData({
+              type: 'test',
+              message: detail.professional_feedback || detail.message,
+              isOffensive: false,
+              strikeIssued: false,
+              isBanned: false
+            });
+            setShowStrikeModal(true);
+            setLoading(false);
+            return;
+          }
+          
           // Check if text is offensive
           if (detail?.error === 'offensive_text') {
             setStrikeData({
@@ -426,17 +440,25 @@ export default function ReportFormPage() {
           {/* Icon */}
           <div className="flex justify-center mb-6">
             <div className={`w-20 h-20 rounded-full flex items-center justify-center ${
+              strikeData.type === 'test' ? 'bg-green-100' :
               strikeData.isOffensive ? 'bg-red-100' : 'bg-orange-100'
             }`}>
-              <svg className={`w-12 h-12 ${strikeData.isOffensive ? 'text-red-600' : 'text-orange-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
+              {strikeData.type === 'test' ? (
+                <svg className="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              ) : (
+                <svg className={`w-12 h-12 ${strikeData.isOffensive ? 'text-red-600' : 'text-orange-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              )}
             </div>
           </div>
 
           {/* Title */}
           <h2 className="text-2xl font-bold text-center text-gray-900 mb-4">
-            {strikeData.isOffensive ? '🚨 Contenido Ofensivo Detectado' : '⚠️ Contenido No Válido'}
+            {strikeData.type === 'test' ? '✅ Sistema Funcionando Correctamente' :
+             strikeData.isOffensive ? '🚨 Contenido Ofensivo Detectado' : '⚠️ Contenido No Válido'}
           </h2>
 
           {/* Message */}
@@ -498,10 +520,16 @@ export default function ReportFormPage() {
                 const fileInput = document.querySelector('input[type="file"]');
                 if (fileInput) fileInput.value = '';
               }
+              // Si es test, solo cierra el modal y mantiene todo
             }}
-            className="w-full py-3 px-6 bg-guinda text-white rounded-lg font-semibold hover:bg-guinda/90 transition-colors"
+            className={`w-full py-3 px-6 rounded-lg font-semibold transition-colors ${
+              strikeData.type === 'test' 
+                ? 'bg-green-600 text-white hover:bg-green-700' 
+                : 'bg-guinda text-white hover:bg-guinda/90'
+            }`}
           >
-            {strikeData.strikeIssued ? 'Entendido' : 'Cambiar Foto'}
+            {strikeData.type === 'test' ? '¡Entendido! Crear Reporte Real' :
+             strikeData.strikeIssued ? 'Entendido' : 'Cambiar Foto'}
           </button>
         </motion.div>
       </div>
