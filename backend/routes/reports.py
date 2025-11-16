@@ -53,11 +53,20 @@ async def validate_photo_with_ai(
         return {"valid": True, "message": "AI validation disabled"}
     
     try:
-        # STEP 1: Check text for offensive content FIRST
+        # STEP 1: Check text for offensive content, nonsense, test, or vague FIRST
         validator = get_ai_validator()
         text_check = validator.check_offensive_text(description)
         
-        if text_check.get("is_offensive") or text_check.get("is_inappropriate"):
+        # Check for any invalid text (offensive, nonsense, test, or vague)
+        is_invalid = (
+            text_check.get("is_offensive") or 
+            text_check.get("is_inappropriate") or
+            text_check.get("is_nonsense") or
+            text_check.get("is_test") or
+            text_check.get("is_too_vague")
+        )
+        
+        if is_invalid:
             # Issue strike for offensive text
             moderation = get_moderation_service(db)
             

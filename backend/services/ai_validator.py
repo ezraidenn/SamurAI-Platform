@@ -167,14 +167,18 @@ class AIValidator:
 - Contenido sexual explícito
 - Amenazas o violencia
 - Discriminación o discurso de odio
-- Spam o texto sin sentido
+- Spam o texto sin sentido (ej: "asdfghjkl", "snionioaendionodneiodnioqenioe")
+- Texto de prueba (ej: "esto es una prueba", "test", "prueba del sistema", "hackathon")
+- Descripciones extremadamente vagas que no explican el problema
 
 Texto a analizar: "{description}"
 
 IMPORTANTE: El mensaje "professional_feedback" debe:
 - Usar "detectamos" en lugar de "la IA detectó"
 - Ser profesional y respetuoso
-- Explicar claramente por qué se rechaza
+- Si es texto de prueba, ser CREATIVO y amigable: "¡Excelente! El sistema funciona perfectamente. Ahora que confirmaste que todo está listo, puedes crear tu reporte real cuando lo necesites. 🚀"
+- Si es texto sin sentido, explicar claramente: "Detectamos que el texto no tiene sentido. Por favor, describe el problema de infraestructura vial que deseas reportar."
+- Si es muy vago, pedir más detalles: "La descripción es muy general. Por favor, proporciona más detalles sobre el problema para que podamos atenderlo mejor."
 - Invitar al usuario a corregir el contenido
 
 Responde en formato JSON:
@@ -182,7 +186,10 @@ Responde en formato JSON:
     "is_offensive": true/false,
     "is_inappropriate": true/false,
     "is_spam": true/false,
-    "offense_type": "vulgar/insult/sexual/threat/hate/spam/none",
+    "is_test": true/false,
+    "is_nonsense": true/false,
+    "is_too_vague": true/false,
+    "offense_type": "vulgar/insult/sexual/threat/hate/spam/test/nonsense/vague/none",
     "detected_words": ["palabra1", "palabra2"],
     "severity": "low/medium/high/critical",
     "requires_strike": true/false,
@@ -202,7 +209,15 @@ Debes ser ESTRICTO al detectar:
 - Contenido sexual explícito
 - Amenazas o violencia
 - Discriminación
-- Spam o texto sin sentido
+- Spam o texto sin sentido (letras aleatorias, tecleo sin sentido)
+- Texto de prueba (menciones de "prueba", "test", "hackathon", "demo")
+- Descripciones extremadamente vagas (menos de 10 palabras sin contexto útil)
+
+IMPORTANTE:
+- Para texto de prueba: Sé AMIGABLE y CREATIVO, confirma que el sistema funciona
+- Para texto sin sentido: Pide descripción clara del problema
+- Para texto vago: Solicita más detalles específicos
+- NO rechaces descripciones cortas pero claras (ej: "bache grande en calle principal")
 
 Responde siempre en formato JSON."""
                     },
